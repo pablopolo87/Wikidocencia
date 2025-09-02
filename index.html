@@ -11,8 +11,6 @@
     <!-- LeafletJS for Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- PapaParse -->
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
@@ -20,14 +18,9 @@
         #map { height: 60vh; min-height: 500px; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .filter-btn-active { background-color: #2563eb; color: white; }
         .view-tab.active { color: #2563eb; border-color: #2563eb; }
-        #error-banner.hidden { display: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
-
-    <div id="error-banner" class="hidden sticky top-0 z-50 bg-red-100 border-b-2 border-red-500 text-red-800 p-4 text-center text-sm">
-        <p><strong>¡Atención!</strong> No se pudieron cargar los datos actualizados de Google Sheets. Se están mostrando los últimos datos guardados.</p>
-    </div>
 
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <header class="text-center mb-8">
@@ -78,16 +71,31 @@
     </div>
 
     <script>
-        // --- CONFIGURACIÓN DE GOOGLE SHEETS ---
-        const GOOGLE_SHEET_ID = '1Gq-OAmeytBrPj98VNTpMtQS-q6fQOSmr4kDn1YxnzPk';
-        const SHEET_NAME = 'Hoja 1'; 
-        const DATA_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-
-        // --- BASE DE DATOS LOCAL (COMO RESPALDO) ---
+        // --- BASE DE DATOS LOCAL ---
+        // Para añadir una nueva empresa, copia una de las líneas, pégala al final y modifica los datos.
+        // Asegúrate de que cada línea (excepto la última) termine con una coma.
         const companiesData = [
             { "nombre": "AYUNTAMIENTO DE MONACHIL", "telefono": "673366009", "correo": "TECNICOEMPLEO@MONACHIL.ES", "direccion": "CENTRO DE FORMACIÓN LAS CANTERAS. POLIGONO LAS CANTERAS. C/ LEÑADORES", "especialidades": "HABILITACIÓN DOCENCIA;ATENCION SOCIOSANITARIA", "contacto": "ROCIO", "entidad": "Pública", "zona": "Monachil", "observaciones": "Publicación de oferta en el tablón de anuncio del ayuntamiento.", "web": "https://monachil.sedelectronica.es/info.0", "autor": "", "lat": 37.1384, "lng": -3.5516 },
-            { "nombre": "SIDFE — Servicios Integrales de Docencia", "telefono": "958 550 150", "correo": "info@sidfe.es", "direccion": "C/ Jueves, 38 - 2º J, 18100 Armilla (Granada)", "especialidades": "Certificados de profesionalidad;Hostelería;Atención sociosanitaria;Informática y ofimática;Recursos Humanos;Formación para pilotos de dron", "contacto": "Ver web y redes sociales", "entidad": "Privada", "zona": "Armilla", "observaciones": "Centro autorizado para impartir formación para el empleo y certificados de profesionalidad.", "web": "https://www.sidfe.es", "autor": "", "lat": 37.1465, "lng": -3.6245 }
-            // ... resto de tus datos de backup
+            { "nombre": "Centro Público de FPE Cartuja", "telefono": "600158359", "correo": "cartuja.dpgr.ceec@juntadeandalucia.es", "direccion": "C/ José A. Mesa García, 2 (Esquina Periodista Luis de Vicente) 18011 Granada", "especialidades": "ADMINISTRACIÓN Y GESTIÓN;ELECTRICIDAD Y ELECTRÓNICA;ENERGÍA Y AGUA;EDIFICACIÓN Y OBRA CIVIL;FABRICACIÓN MECÁNICA;HOSTELERÍA Y TURISMO;INFORMÁTICA Y COMUNICACIONES;INSTALACIÓN Y MANTENIMIENTO;MADERA, MUEBLE Y CORCHO;QUÍMICA;SEGURIDAD Y MEDIOAMBIENTE;SERVICIOS SOCIOCULTURALES;TEXTIL, CONFECCIÓN Y PIEL;TRANSPORTE Y MANTENIMIENTO DE VEHÍCULOS", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Difícil acceso, los docentes son funcionarios públicos y la bolsa de empleo es muy restringida.", "web": "", "autor": "", "lat": 37.1986, "lng": -3.6095 },
+            { "nombre": "EUROINNOVA BUSINESS SCHOOL", "telefono": "958050200", "correo": "formacion@euroinnova.com", "direccion": "CAMINO LA TORRECILLA, 30 EDIFICIO EDUCA EDTECH, Atarfe, Granada", "especialidades": "ENFERMERÍA;FARMACIA;MEDICINA;FISIOTERAPIA;VETERINARIA;NUTRICIÓN;EDUCACIÓN;MARKETING", "contacto": "900 831 200 (Atención al cliente)", "entidad": "Privada", "zona": "Atarfe", "observaciones": "", "web": "https://www.euroinnova.edu.es", "autor": "", "lat": 37.2185, "lng": -3.6877 },
+            { "nombre": "Ayuntamiento de Armilla", "telefono": "958552897", "correo": "empleo@armilla.es", "direccion": "Centro de Formación Armilla. Avda. Poniente, s/n, 18100 Armilla (Granada)", "especialidades": "Formación para el empleo;Habilitación docente;Cursos de nuevas tecnologías", "contacto": "Isabel López", "entidad": "Pública", "zona": "Armilla", "observaciones": "Publicación de ofertas en la web municipal y tablón de anuncios.", "web": "https://www.armilla.es/empleo", "autor": "Morelia", "lat": 37.1423, "lng": -3.6268 },
+            { "nombre": "ACADEMIA FORMACIÓN SUR", "telefono": "958 123 456", "correo": "info@formacionsur.com", "direccion": "Calle San Juan de Dios, 23, 18001 Granada", "especialidades": "Certificados de profesionalidad;Cursos de idiomas;Habilidades digitales", "contacto": "Miguel Hernández", "entidad": "Privada", "zona": "Granada", "observaciones": "Centro acreditado por la Junta de Andalucía. Inscripción online en la web.", "web": "https://www.formacionsur.com", "autor": "Morelia", "lat": 37.1798, "lng": -3.6026 },
+            { "nombre": "ESCUELA DE FPO LA BLANCA PALOMA", "telefono": "958590002", "correo": "directora@doceteomnes.com", "direccion": "Calle Padre Villoslada, 2 18140 La Zubia (Granada)", "especialidades": "ADMINISTRACION Y GESTION;COMERCIO Y MARKETING;HOSTELERÍA Y TURISMO;IMAGEN PERSONAL;SERVICIOS SOCIOCULTURALES Y A LA COMUNIDAD", "contacto": "directora@doceteomnes.com", "entidad": "Privada Concertada", "zona": "La Zubia", "observaciones": "Buenas opiniones por su variada oferta de ciclos de FP.", "web": "", "autor": "René", "lat": 37.1215, "lng": -3.5858 },
+            { "nombre": "ACADEMIA EL FUTURO GRANADA", "telefono": "958153827", "correo": "academiafuturo@gmail.com", "direccion": "Avda. Juan Pablo ll, 64 B, Bajo, 18014 Granada", "especialidades": "Docencia FPE;CERTIFICADOS DE PROFESIONALIDAD;FORMACIÓN PROFESIONAL DUAL", "contacto": "Maira", "entidad": "Privada", "zona": "Granada", "observaciones": "Colabora en programas de formación y prácticas en empresa para jóvenes y desempleados.", "web": "", "autor": "Eman", "lat": 37.1952, "lng": -3.6174 },
+            { "nombre": "Albay Formación", "telefono": "+34 689 39 54 86", "correo": "cursos@albay.es", "direccion": "C/ Santa Rita, 4 – 18004 (Granada)", "especialidades": "Servicios socioculturales y a la comunidad;Informática y Comunicaciones;Administración y gestión;Servicios Financieros;Comercio y Marketing", "contacto": "", "entidad": "Privada", "zona": "Granada", "observaciones": "Ofrece un abanico potente de posibilidades, pero hay que solicitar información previa ya que no facilitan datos.", "web": "", "autor": "", "lat": 37.1685, "lng": -3.6012 },
+            { "nombre": "Formas Granada", "telefono": "+34 695 22 79 90", "correo": "info@formasgranada.com", "direccion": "Camino de Ronda, 189, 18003, Granada", "especialidades": "Administración;Hostelería;Turismo;Industria alimentaria;Sanitario;Tecnología;FP Oficial", "contacto": "No especificado", "entidad": "Privada", "zona": "Granada", "observaciones": "Ofrece gran variedad de cursos y grados. Parece una franquicia.", "web": "", "autor": "", "lat": 37.167, "lng": -3.6055 },
+            { "nombre": "Academia Gijón", "telefono": "958 820 048", "correo": "info@academiagijon.es", "direccion": "C/ San Cristóbal, 3 – Bajo – 18600 Motril (Granada)", "especialidades": "Idiomas;Infantil;Formación todas las etapas educativas", "contacto": "Antonia Gijón Terrones", "entidad": "Privada", "zona": "Motril", "observaciones": "", "web": "", "autor": "María", "lat": 36.7458, "lng": -3.5195 },
+            { "nombre": "Galilea Formación", "telefono": "958 250925", "correo": "info@galileaformacion.com", "direccion": "C/ Manuel de Falla, 3 – Bajo – 18005 Granada", "especialidades": "Idiomas;Formación bonificada;Certificados de profesionalidad;FP;Oposiciones", "contacto": "María José Padial Cogolludo", "entidad": "Privada", "zona": "Granada", "observaciones": "Centro homologado por la Junta de Andalucía.", "web": "", "autor": "María", "lat": 37.1713, "lng": -3.5995 },
+            { "nombre": "Escuela pública Centro albayzín", "telefono": "958 17 26 77", "correo": "crnartesania.sae@juntadeandalucia.es", "direccion": "Placeta de la Concepción 1 , Granada", "especialidades": "Artesanía tradicional;Restauración;Fabricación de instrumentos musicales;Vidrio y cerámica;Afinación de pianos;Emprendimiento en Artesanía", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Centro de Referencia Nacional de Artesanía.", "web": "", "autor": "", "lat": 37.1824, "lng": -3.5936 },
+            { "nombre": "Centro de estudios Valverde Motril", "telefono": "958824081", "correo": "No disponible", "direccion": "Avda. Enrique Martín Cuevas, Nº 14, 18600 Motril", "especialidades": "Oposiciones;Idiomas;Infantil;Servicio a empresas;Salvamento y seguridad marítima", "contacto": "www.centrosvalverde.es", "entidad": "Privada", "zona": "Motril", "observaciones": "", "web": "", "autor": "Dori", "lat": 36.748, "lng": -3.5165 },
+            { "nombre": "Atlántida Formación Profesional", "telefono": "900 287 287", "correo": "info@atlantidacidep.es", "direccion": "C/ Acequia del Zute, 2 - 18015, Granada", "especialidades": "Formación para empresas;FP reglada;Certificados profesionales;Atención sociosanitaria;Análisis químico;Jardinería;Microinformática;Control de plagas;Tanatopraxia", "contacto": "No indicado", "entidad": "Privada", "zona": "Granada", "observaciones": "", "web": "https://atlantidaformacion.com/", "autor": "César", "lat": 37.2111, "lng": -3.6191 },
+            { "nombre": "Campus Elea", "telefono": "958 419005", "correo": "info@campuselea.es", "direccion": "C/ Periodista Fernando de la Cruz nº61, Oficina 7, CETIC-UGR, 18014 Granada", "especialidades": "Cursos Bonificados;Marketing Digital;Competencias digitales;Prevención de Riesgos Laborales;Hostelería (HORECA)", "contacto": "Marta Núñez", "entidad": "Privada", "zona": "Granada", "observaciones": "", "web": "https://campuselea.es/contacto/", "autor": "Marcos", "lat": 37.1995, "lng": -3.6225 },
+            { "nombre": "SIDFE — Servicios Integrales de Docencia", "telefono": "958 550 150", "correo": "info@sidfe.es", "direccion": "C/ Jueves, 38 - 2º J, 18100 Armilla (Granada)", "especialidades": "Certificados de profesionalidad;Hostelería;Atención sociosanitaria;Informática y ofimática;Recursos Humanos;Formación para pilotos de dron", "contacto": "Ver web y redes sociales", "entidad": "Privada", "zona": "Armilla", "observaciones": "Centro autorizado para impartir formación para el empleo y certificados de profesionalidad.", "web": "https://www.sidfe.es", "autor": "", "lat": 37.1465, "lng": -3.6245 },
+            { "nombre": "O.A.L Albolote", "telefono": "958467393", "correo": "info@oal-albolote.com", "direccion": "Avenida Jacobo Camarero, s/n, 18220 Albolote, Granada", "especialidades": "Administración y servicio;Servicios sociales y comunitarios;Competencias digitales;Formación Cruz Roja", "contacto": "manuel.moles@cruzroja.es", "entidad": "Pública", "zona": "Albolote", "observaciones": "Organismo Autónomo Local. Colabora con Cruz Roja y Diputación de Granada.", "web": "", "autor": "N/A", "lat": 37.228, "lng": -3.655 },
+            { "nombre": "Academia Teba", "telefono": "+34 958 943 902", "correo": "info@academiateba.es", "direccion": "Avda. Fernando de los Ríos, 34, 18006 Granada", "especialidades": "Preparación de oposiciones;Formación para el empleo;Idiomas;Español para extranjeros", "contacto": "", "entidad": "Privada", "zona": "Granada", "observaciones": "Más de 30 años de experiencia. Centro acreditado por el Instituto Cervantes.", "web": "", "autor": "Morelia", "lat": 37.162, "lng": -3.606 },
+            { "nombre": "Escuela de Formación Profesional (Grupo EFP)", "telefono": "958 089 725", "correo": "granada@grupoefp.es", "direccion": "C/ Benjamín Franklin, 1, 18100 Armilla, Granada", "especialidades": "Artes Gráficas;Administración y Gestión;Habilitante;Transversal;Servicio a empresas", "contacto": "Antonia Gijón Terrones", "entidad": "Privada", "zona": "Armilla", "observaciones": "Empresa privada, homologada por el SEPE.", "web": "https://www.escueladeformacionprofesional.com", "autor": "María", "lat": 37.147, "lng": -3.622 },
+            { "nombre": "Consorcio de la Vega Sierra Elvira", "telefono": "No disponible", "correo": "info@consvega.com", "direccion": "Calle Doctor Jiménez Rueda, 1, 18230 Atarfe (Granada)", "especialidades": "Actividades de gestión administrativa;Competencias clave;Gestión de llamadas de teleasistencia;Atención sociosanitaria;Docencia de la FPE", "contacto": "info@consvega.com", "entidad": "Pública", "zona": "Atarfe", "observaciones": "Entidad local y pública.", "web": "https://consvega.com/consorcio/", "autor": "César", "lat": 37.217, "lng": -3.684 },
+            { "nombre": "Aspasia", "telefono": "958 805100", "correo": "comunicacion@grupoaspasia.com", "direccion": "C/ Cisne nº 6. 18014. Granada", "especialidades": "Certificados de Profesionalidad;Gestión contable;Recursos humanos;Atención al cliente;Cocina;Páginas web;Atención sociosanitaria", "contacto": "", "entidad": "Privada", "zona": "Granada", "observaciones": "Cubre todos los sectores con cursos y certificados.", "web": "https://grupoaspasia.com/es", "autor": "PEPA", "lat": 37.194, "lng": -3.615 }
         ];
 
         let companies = [];
@@ -101,20 +109,21 @@
         const viewSwitcher = document.getElementById('view-switcher');
         const gridView = document.getElementById('grid-view');
         const mapView = document.getElementById('map-view');
-        const errorBanner = document.getElementById('error-banner');
-
+        
         // --- Map Initialization ---
         let map;
         let markers = L.layerGroup();
+        
+        // --- FUNCTION DEFINITIONS ---
 
         const initMap = () => {
-            if(!map) {
-                map = L.map('map').setView([37.1773, -3.5986], 12);
+            if(!map) { // Prevent re-initializing the map
+                map = L.map('map').setView([37.1773, -3.5986], 12); // Centered on Granada
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
                 markers.addTo(map);
             }
         };
-
+        
         const updateMapMarkers = (filteredCompanies) => {
             markers.clearLayers();
             filteredCompanies.forEach(company => {
@@ -146,91 +155,98 @@
                             ${company.contacto ? `<p><strong>👤 Contacto:</strong> ${company.contacto}</p>` : ''}
                         </div>
                         <div class="mt-4"><h4 class="font-semibold text-sm mb-2">Especialidades:</h4><div class="flex flex-wrap">${specialtiesHTML}</div></div>
-                        ${company.observaciones ? `<p class="mt-4 text-gray-400 text-xs">${company.observaciones}</p>` : ''}
-                        ${company.web ? `<a href="${company.web}" target="_blank" class="inline-block mt-3 text-blue-600 text-sm hover:underline">Sitio web</a>` : ''}
+                        ${company.observaciones ? `<div class="mt-4 pt-4 border-t border-gray-200"><p class="text-sm text-gray-500"><strong class="text-gray-700">Observaciones:</strong> ${company.observaciones}</p></div>` : ''}
                     </div>
-                </div>
-            `;
-        };
-
-        const initializeData = (data) => {
-            companies = data.map(item => ({
-                ...item,
-                especialidades: item.especialidades ? item.especialidades.split(';').map(s => s.trim()) : []
-            }));
-            populateZoneFilter();
-            renderCompanies();
-        };
-
-        const populateZoneFilter = () => {
-            const zones = Array.from(new Set(companies.map(c => c.zona).filter(Boolean))).sort();
-            zoneFilter.innerHTML = '<option value="">Todas las zonas</option>' + zones.map(z => `<option value="${z}">${z}</option>`).join('');
+                    ${company.web ? `<div class="bg-gray-50 p-3 border-t"><a href="${company.web}" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-blue-600 hover:text-blue-800 w-full text-center block">Visitar web →</a></div>` : ''}
+                </div>`;
         };
 
         const renderCompanies = () => {
             const searchTerm = searchInput.value.toLowerCase();
             const selectedZone = zoneFilter.value;
-            const selectedEntity = Array.from(entityFilterContainer.querySelectorAll('button.filter-btn-active'))[0]?.dataset.filter || 'all';
+            const selectedEntity = entityFilterContainer.querySelector('.filter-btn-active').dataset.filter;
 
-            let filtered = companies.filter(company => {
-                const matchesSearch = Object.values(company).some(val => val && val.toString().toLowerCase().includes(searchTerm));
-                const matchesZone = selectedZone ? company.zona === selectedZone : true;
-                const matchesEntity = selectedEntity === 'all' ? true : (selectedEntity === 'public' ? company.entidad.toLowerCase().includes('pública') : company.entidad.toLowerCase().includes('privada'));
-                return matchesSearch && matchesZone && matchesEntity;
+            const filteredCompanies = companies.filter(company => {
+                const searchMatch = [company.nombre, company.contacto, company.autor, ...(company.especialidades || [])].join(' ').toLowerCase().includes(searchTerm);
+                const zoneMatch = selectedZone === 'all' || company.zona === selectedZone;
+                const entityMatch = selectedEntity === 'all' || (company.entidad && (selectedEntity === 'public' && (company.entidad.toLowerCase().includes('pública') || company.entidad.toLowerCase().includes('público'))) || (selectedEntity === 'private' && !(company.entidad.toLowerCase().includes('pública') || company.entidad.toLowerCase().includes('público'))));
+                return searchMatch && zoneMatch && entityMatch;
             });
 
-            contentContainer.innerHTML = filtered.length > 0 ? filtered.map(createCompanyCard).join('') : '';
-            noResults.classList.toggle('hidden', filtered.length > 0);
-
-            updateMapMarkers(filtered);
+            contentContainer.innerHTML = '';
+            if (filteredCompanies.length > 0) {
+                filteredCompanies.forEach(company => contentContainer.innerHTML += createCompanyCard(company));
+                noResults.classList.add('hidden');
+                contentContainer.classList.remove('hidden');
+            } else {
+                noResults.classList.remove('hidden');
+                contentContainer.classList.add('hidden');
+            }
+            updateMapMarkers(filteredCompanies);
         };
 
-        searchInput.addEventListener('input', renderCompanies);
+        const populateZoneFilter = () => {
+            const zones = [...new Set(companies.map(c => c.zona).filter(Boolean))].sort();
+            zoneFilter.innerHTML = `<option value="all">Todas las zonas</option>`;
+            zones.forEach(zone => {
+                zoneFilter.innerHTML += `<option value="${zone}">${zone}</option>`;
+            });
+        };
+        
+        const initializeData = (data) => {
+            companies = data.map(company => {
+                if (company.especialidades && typeof company.especialidades === 'string') {
+                    company.especialidades = company.especialidades.split(';').map(s => s.trim()).filter(Boolean);
+                } else if (!Array.isArray(company.especialidades)) {
+                    company.especialidades = [];
+                }
+                return company;
+            });
+            populateZoneFilter();
+            renderCompanies();
+        };
+
+        // --- MAIN LOGIC ---
+        
+        // Setup Event Listeners
+        searchInput.addEventListener('keyup', renderCompanies);
         zoneFilter.addEventListener('change', renderCompanies);
-        entityFilterContainer.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                entityFilterContainer.querySelectorAll('button').forEach(b => b.classList.remove('filter-btn-active'));
-                btn.classList.add('filter-btn-active');
+        entityFilterContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                entityFilterContainer.querySelector('.filter-btn-active').classList.remove('filter-btn-active');
+                e.target.classList.add('filter-btn-active');
                 renderCompanies();
-            });
+            }
         });
 
-        viewSwitcher.querySelectorAll('button').forEach(tab => {
-            tab.addEventListener('click', () => {
-                viewSwitcher.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                tab.classList.add('active');
-                if(tab.dataset.view === 'grid') { gridView.classList.remove('hidden'); mapView.classList.add('hidden'); }
-                else { gridView.classList.add('hidden'); mapView.classList.remove('hidden'); map.invalidateSize(); }
-            });
+        viewSwitcher.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (!button) return;
+            const view = button.dataset.view;
+            
+            viewSwitcher.querySelector('.active').classList.remove('active');
+            button.classList.add('active');
+
+            if (view === 'grid') {
+                gridView.classList.remove('hidden');
+                mapView.classList.add('hidden');
+            } else {
+                gridView.classList.add('hidden');
+                mapView.classList.remove('hidden');
+                setTimeout(() => map.invalidateSize(), 1);
+            }
         });
 
-        // --- INICIALIZACIÓN ---
+        // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
             initMap();
-            initializeData(companiesData); // Render backup primero
-
-            // Carga datos desde Google Sheets con PapaParse
-            Papa.parse(DATA_URL, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    if(results && results.data && results.data.length > 0) {
-                        console.log("Datos de Google Sheets cargados:", results.data);
-                        initializeData(results.data); // Re-render con datos frescos
-                    } else {
-                        console.warn("Google Sheets vacío o no válido");
-                        errorBanner.classList.remove('hidden');
-                    }
-                },
-                error: function(err) {
-                    console.error("Error al cargar Google Sheets:", err);
-                    errorBanner.classList.remove('hidden');
-                }
-            });
+            // Cargar los datos locales
+            initializeData(companiesData);
         });
+
     </script>
 </body>
 </html>
+
 
 
