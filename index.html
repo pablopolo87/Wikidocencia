@@ -38,8 +38,8 @@
             <div class="max-w-4xl mx-auto space-y-4">
                  <div class="flex flex-col sm:flex-row gap-4">
                     <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre, especialidad, contacto..." class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                     <a id="edit-sheet-btn" href="#" target="_blank" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 transition whitespace-nowrap text-center flex items-center justify-center">
-                        Añadir o Editar Datos
+                     <a id="add-entry-btn" href="#" target="_blank" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 transition whitespace-nowrap text-center flex items-center justify-center">
+                        ➕ Añadir Empresa
                     </a>
                 </div>
 
@@ -76,13 +76,15 @@
 
     <script>
         // --- 1. CONFIGURACIÓN ---
-        const GOOGLE_SHEET_ID = '1Gq-OAmeytBrPj98VNTpMtQS-q6fQOSmr4kDn1YxnzPk'; // ID para el botón de editar
+        const GOOGLE_SHEET_ID = '1Gq-OAmeytBrPj98VNTpMtQS-q6fQOSmr4kDn1YxnzPk';
         const SHEET_NAME = 'Hoja 1'; // Asegúrate de que este es el nombre exacto de tu hoja
-        const PUBLISHED_CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+        const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe-P_gS8pY-5d7c-3Xqf3tNn-1yW1s-0oM8oR_d9f-3lKz-0w/viewform?usp=sf_link'; // Enlace para el botón "Añadir Empresa"
+        
+        const DATA_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
         
         // --- NO TOCAR A PARTIR DE AQUÍ ---
         
-        // --- DATOS INICIALES PRE-CARGADOS DEL DOCUMENTO WORD ---
+        // --- DATOS INICIALES PRE-CARGADOS ---
         let initialCompanies = [
             { "nombre": "AYUNTAMIENTO DE MONACHIL", "telefono": "673366009", "correo": "TECNICOEMPLEO@MONACHIL.ES", "direccion": "CENTRO DE FORMACIÓN LAS CANTERAS. POLIGONO LAS CANTERAS. C/ LEÑADORES", "especialidades": "HABILITACIÓN DOCENCIA;ATENCION SOCIOSANITARIA", "contacto": "ROCIO", "entidad": "Pública", "zona": "Monachil", "observaciones": "Publicación de oferta en el tablón de anuncio del ayuntamiento.", "web": "https://monachil.sedelectronica.es/info.0", "lat": 37.1384, "lng": -3.5516 },
             { "nombre": "Centro Público de FPE Cartuja", "telefono": "600158359", "correo": "cartuja.dpgr.ceec@juntadeandalucia.es", "direccion": "C/ José A. Mesa García, 2 (Esquina Periodista Luis de Vicente) 18011 Granada", "especialidades": "ADMINISTRACIÓN Y GESTIÓN;ELECTRICIDAD Y ELECTRÓNICA;ENERGÍA Y AGUA;EDIFICACIÓN Y OBRA CIVIL;FABRICACIÓN MECÁNICA;HOSTELERÍA Y TURISMO;INFORMÁTICA Y COMUNICACIONES;INSTALACIÓN Y MANTENIMIENTO;MADERA, MUEBLE Y CORCHO;QUÍMICA;SEGURIDAD Y MEDIOAMBIENTE;SERVICIOS SOCIOCULTURALES;TEXTIL, CONFECCIÓN Y PIEL;TRANSPORTE Y MANTENIMIENTO DE VEHÍCULOS", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Difícil acceso, los docentes son funcionarios públicos y la bolsa de empleo es muy restringida.", "lat": 37.1986, "lng": -3.6095 },
@@ -98,7 +100,8 @@
             { "nombre": "Escuela pública Centro albayzín", "telefono": "958 17 26 77", "correo": "crnartesania.sae@juntadeandalucia.es", "direccion": "Placeta de la Concepción 1 , Granada", "especialidades": "Artesanía tradicional;Restauración;Fabricación de instrumentos musicales;Vidrio y cerámica;Afinación de pianos;Emprendimiento en Artesanía", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Centro de Referencia Nacional de Artesanía.", "lat": 37.1824, "lng": -3.5936 },
             { "nombre": "Centro de estudios Valverde Motril", "telefono": "958824081", "correo": "No disponible", "direccion": "Avda. Enrique Martín Cuevas, Nº 14, 18600 Motril", "especialidades": "Oposiciones;Idiomas;Infantil;Servicio a empresas;Salvamento y seguridad marítima", "contacto": "www.centrosvalverde.es", "entidad": "Privada", "zona": "Motril", "autor": "Dori", "lat": 36.7480, "lng": -3.5165 },
             { "nombre": "Atlántida Formación Profesional", "telefono": "900 287 287", "correo": "info@atlantidacidep.es", "direccion": "C/ Acequia del Zute, 2 - 18015, Granada", "especialidades": "Formación para empresas;FP reglada;Certificados profesionales;Atención sociosanitaria;Análisis químico;Jardinería;Microinformática;Control de plagas;Tanatopraxia", "contacto": "No indicado", "entidad": "Privada", "zona": "Granada", "web": "https://atlantidaformacion.com/", "autor": "César", "lat": 37.2111, "lng": -3.6191 },
-            { "nombre": "Campus Elea", "telefono": "958 419005", "correo": "info@campuselea.es", "direccion": "C/ Periodista Fernando de la Cruz nº61, Oficina 7, CETIC-UGR, 18014 Granada", "especialidades": "Cursos Bonificados;Marketing Digital;Competencias digitales;Prevención de Riesgos Laborales;Hostelería (HORECA)", "contacto": "Marta Núñez", "entidad": "Privada", "zona": "Granada", "web": "https://campuselea.es/contacto/", "autor": "Marcos", "lat": 37.1995, "lng": -3.6225 }
+            { "nombre": "Campus Elea", "telefono": "958 419005", "correo": "info@campuselea.es", "direccion": "C/ Periodista Fernando de la Cruz nº61, Oficina 7, CETIC-UGR, 18014 Granada", "especialidades": "Cursos Bonificados;Marketing Digital;Competencias digitales;Prevención de Riesgos Laborales;Hostelería (HORECA)", "contacto": "Marta Núñez", "entidad": "Privada", "zona": "Granada", "web": "https://campuselea.es/contacto/", "autor": "Marcos", "lat": 37.1995, "lng": -3.6225 },
+            { "nombre": "SIDFE — Servicios Integrales de Docencia", "telefono": "958 550 150 / 659 972 676", "correo": "info@sidfe.es", "direccion": "C/ Jueves, 38 - 2º J, 18100 Armilla (Granada)", "especialidades": "Certificados de profesionalidad;Hostelería;Atención sociosanitaria;Informática y ofimática;Recursos Humanos;Formación para pilotos de dron", "contacto": "Ver web y redes sociales", "entidad": "Privada", "zona": "Armilla", "observaciones": "Centro autorizado para impartir formación para el empleo y certificados de profesionalidad.", "web": "https://www.sidfe.es", "lat": 37.1465, "lng": -3.6245 }
         ];
 
         let companies = [];
@@ -165,14 +168,18 @@
         }
 
         const parseCSV = (text) => {
+            if (!text || typeof text !== 'string') {
+                throw new Error("Invalid input to parseCSV: not a string or empty.");
+            }
             const lines = text.split(/\r\n|\n/);
-            // Handle cases where gviz adds extra quotes
+            if (lines.length < 1) {
+                throw new Error("Invalid CSV format: no lines found.");
+            }
             const headers = lines[0].replace(/"/g, '').split(',').map(h => h.trim());
             const data = [];
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i]) continue;
                 const obj = {};
-                // The gviz endpoint wraps every value in quotes and escapes quotes with a backslash
                 const currentline = lines[i].slice(1, -1).split('","');
                 for (let j = 0; j < headers.length; j++) {
                      obj[headers[j]] = (currentline[j] || '').replace(/\\"/g, '"');
@@ -251,7 +258,25 @@
             });
             populateZoneFilter();
             renderCompanies();
-        }
+        };
+        
+        const fetchWithTimeout = (resource, options = {}) => {
+            const { timeout = 10000 } = options;
+            
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+
+            const response = fetch(resource, {
+                ...options,
+                signal: controller.signal  
+            });
+            
+            response.finally(() => {
+                clearTimeout(id);
+            });
+
+            return response;
+        };
 
         // --- MAIN LOGIC ---
         
@@ -286,25 +311,31 @@
 
         // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
-            if (GOOGLE_SHEET_ID && GOOGLE_SHEET_ID !== 'PEGA_AQUÍ_EL_NUEVO_ID_DE_TU_HOJA') {
-                document.getElementById('edit-sheet-btn').href = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit`;
+            if (GOOGLE_FORM_URL && GOOGLE_FORM_URL !== 'PEGA_AQUÍ_EL_ENLACE_DE_TU_FORMULARIO_DE_GOOGLE') {
+                document.getElementById('add-entry-btn').href = GOOGLE_FORM_URL;
             }
             initMap();
             // 1. Render initial data immediately
             initializeData(initialCompanies);
             
             // 2. Try to fetch fresh data from Google Sheets
-            if (PUBLISHED_CSV_URL && PUBLISHED_CSV_URL !== 'PEGA_AQUÍ_TU_NUEVO_ENLACE_CSV_PUBLICADO') {
-                fetch(PUBLISHED_CSV_URL)
+            if (DATA_URL && DATA_URL.startsWith('https')) {
+                fetchWithTimeout(DATA_URL, { timeout: 10000 })
                     .then(response => {
-                        if (!response.ok) throw new Error('Network response was not ok');
+                        if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
                         return response.text();
                     })
                     .then(text => {
-                        const freshData = parseCSV(text);
-                        if(freshData.length > 0) {
-                            console.log("Datos de Google Sheets cargados correctamente.");
-                            initializeData(freshData); // Re-render with fresh data
+                        try {
+                            const freshData = parseCSV(text);
+                            if(freshData.length > 0) {
+                                console.log("Datos de Google Sheets cargados correctamente.");
+                                initializeData(freshData); // Re-render with fresh data
+                            }
+                        } catch (parseError) {
+                             console.error("Fallo al procesar los datos de Google Sheets:", parseError);
+                             console.error("Datos recibidos:", text);
+                             throw new Error("Formato de datos de Google Sheets no válido.");
                         }
                         // Hide loader after successful fetch
                         loader.style.opacity = '0';
@@ -324,8 +355,5 @@
     </script>
 </body>
 </html>
-
-            }
-        });
 
 
