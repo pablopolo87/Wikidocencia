@@ -9,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- LeafletJS for Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
@@ -30,8 +30,8 @@
 
         <div class="max-w-4xl mx-auto bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-center mb-8">
             <h2 class="font-bold">¡Hola! ¿Quieres colaborar?</h2>
-            <p class="text-sm mt-1">Para añadir o corregir información, por favor, edita el archivo <code>data.json</code> en nuestro repositorio de GitHub. ¡Gracias por tu ayuda!</p>
-            <a href="https://github.com/pablopolo87/Wikidocencia/edit/main/data.json" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm hover:bg-blue-700">Editar data.json en GitHub</a>
+            <p class="text-sm mt-1">Añade empresas directamente en la hoja de Google compartida. La web se actualizará automáticamente.</p>
+            <a href="https://docs.google.com/spreadsheets/d/1Gq-OAmeytBrPj98VNTpMtQS-q6fQOSmr4kDn1YxnzPk/edit?usp=sharing" target="_blank" class="mt-2 inline-block bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm hover:bg-blue-700">Abrir hoja en Google Sheets</a>
         </div>
 
         <div class="sticky top-4 bg-gray-50/90 backdrop-blur-sm z-10 py-4 mb-6 rounded-lg">
@@ -73,7 +73,6 @@
     <script>
         let companies = [];
         
-        // --- DOM Elements ---
         const contentContainer = document.getElementById('wiki-content');
         const searchInput = document.getElementById('searchInput');
         const noResults = document.getElementById('no-results');
@@ -83,7 +82,6 @@
         const gridView = document.getElementById('grid-view');
         const mapView = document.getElementById('map-view');
 
-        // --- Map Initialization ---
         let map;
         let markers = L.layerGroup();
         
@@ -181,7 +179,6 @@
             renderCompanies();
         };
 
-        // --- MAIN LOGIC ---
         searchInput.addEventListener('keyup', renderCompanies);
         zoneFilter.addEventListener('change', renderCompanies);
         entityFilterContainer.addEventListener('click', (e) => {
@@ -212,10 +209,30 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             initMap();
-            fetch("data.json")
-                .then(res => res.json())
-                .then(data => initializeData(data))
-                .catch(err => console.error("Error cargando data.json", err));
+            const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQKt6sWjZz-yQ6CPIvKW0BoQw3fxdzPEOuVa1RiTCTow-PjVTrf7N0duofyOXkBCkCRk9dYnirPHyx/pub?gid=0&single=true&output=csv";
+
+            fetch(sheetCsvUrl)
+              .then(res => res.text())
+              .then(csv => {
+                const rows = csv.trim().split("\n").map(line => line.split(","));
+                const headers = rows[0].map(h => h.trim().toLowerCase());
+
+                const data = rows.slice(1).map(r => {
+                  let obj = {};
+                  headers.forEach((h, i) => {
+                    obj[h] = r[i] ? r[i].trim() : "";
+                  });
+                  obj.especialidades = obj.especialidades
+                    ? obj.especialidades.split(";").map(s => s.trim()).filter(Boolean)
+                    : [];
+                  obj.lat = parseFloat(obj.lat) || null;
+                  obj.lng = parseFloat(obj.lng) || null;
+                  return obj;
+                });
+
+                initializeData(data);
+              })
+              .catch(err => console.error("Error cargando la hoja (CSV):", err));
         });
     </script>
 </body>
