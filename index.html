@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki de Docencia - Granada</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- LeafletJS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .view.hidden { display: none; }
+        #map { height: 60vh; min-height: 500px; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .filter-btn-active { background-color: #2563eb; color: white; }
+        .view-tab.active { color: #2563eb; border-color: #2563eb; }
+        #loader { transition: opacity 0.5s ease-out; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Loader / Error Message -->
+    <div id="loader" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center text-center p-4">
+        <div id="spinner" class="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
+        <p id="loader-text" class="mt-4 text-gray-600">Cargando datos...</p>
+    </div>
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-blue-600">Wiki de Docencia</h1>
+            <p class="text-lg text-gray-600 mt-2">Directorio de empresas para la Formación Profesional para el Empleo en Granada.</p>
+        </header>
+
+        <div class="sticky top-4 bg-gray-50/90 backdrop-blur-sm z-10 py-4 mb-6 rounded-lg">
+            <div class="max-w-4xl mx-auto space-y-4">
+                 <div class="flex flex-col sm:flex-row gap-4">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre, especialidad, contacto..." class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                     <a id="edit-sheet-btn" href="#" target="_blank" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 transition whitespace-nowrap text-center flex items-center justify-center">
+                        Añadir o Editar Datos
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="zoneFilter" class="block text-sm font-medium text-gray-700 mb-1">Filtrar por Zona:</label>
+                        <select id="zoneFilter" class="w-full p-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500"></select>
+                    </div>
+                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Filtrar por Entidad:</label>
+                        <div id="entityFilter" class="flex items-center bg-gray-200 rounded-lg p-1">
+                            <button data-filter="all" class="filter-btn-active flex-1 text-center py-1 px-3 rounded-md text-sm font-semibold transition">Todas</button>
+                            <button data-filter="public" class="flex-1 text-center py-1 px-3 rounded-md text-sm font-semibold transition">Públicas</button>
+                            <button data-filter="private" class="flex-1 text-center py-1 px-3 rounded-md text-sm font-semibold transition">Privadas</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="view-switcher" class="flex justify-center border-b border-gray-200 mb-8">
+            <button data-view="grid" class="view-tab active flex items-center gap-2 px-8 py-3 font-semibold text-gray-500 border-b-2">Lista</button>
+            <button data-view="map" class="view-tab flex items-center gap-2 px-8 py-3 font-semibold text-gray-500 border-b-2">Mapa</button>
+        </div>
+
+        <div id="grid-view" class="view"><main id="wiki-content" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></main></div>
+        <div id="map-view" class="view hidden"><div id="map"></div></div>
+        
+        <div id="no-results" class="hidden text-center py-16">
+            <p class="text-2xl font-semibold text-gray-500">No se encontraron resultados</p>
+            <p class="text-gray-400 mt-2">Prueba con otros filtros o términos de búsqueda.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURACIÓN ---
+        const PUBLISHED_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQt3QyP-mySr3TJ2EEgVa775VOqSJLYqmwqXSp-wEoV71oZmH_8NWoer03tDamVputIsOXvwC4L72jr/pub?output=csv'; 
+        const GOOGLE_SHEET_ID = '1a-e_k6p-Q_f3eJ3bX2vW1L5N_h0cZ8sU6R9d7F4gY8k'; // ID para el botón de editar
+        
+        // --- NO TOCAR A PARTIR DE AQUÍ ---
+        
+        // --- DATOS INICIALES PRE-CARGADOS DEL DOCUMENTO WORD ---
+        let initialCompanies = [
+            { "nombre": "AYUNTAMIENTO DE MONACHIL", "telefono": "673366009", "correo": "TECNICOEMPLEO@MONACHIL.ES", "direccion": "CENTRO DE FORMACIÓN LAS CANTERAS. POLIGONO LAS CANTERAS. C/ LEÑADORES", "especialidades": "HABILITACIÓN DOCENCIA;ATENCION SOCIOSANITARIA", "contacto": "ROCIO", "entidad": "Pública", "zona": "Monachil", "observaciones": "Publicación de oferta en el tablón de anuncio del ayuntamiento.", "web": "https://monachil.sedelectronica.es/info.0" },
+            { "nombre": "Centro Público de FPE Cartuja", "telefono": "600158359", "correo": "cartuja.dpgr.ceec@juntadeandalucia.es", "direccion": "C/ José A. Mesa García, 2 (Esquina Periodista Luis de Vicente) 18011 Granada", "especialidades": "ADMINISTRACIÓN Y GESTIÓN;ELECTRICIDAD Y ELECTRÓNICA;ENERGÍA Y AGUA;EDIFICACIÓN Y OBRA CIVIL;FABRICACIÓN MECÁNICA;HOSTELERÍA Y TURISMO;INFORMÁTICA Y COMUNICACIONES;INSTALACIÓN Y MANTENIMIENTO;MADERA, MUEBLE Y CORCHO;QUÍMICA;SEGURIDAD Y MEDIOAMBIENTE;SERVICIOS SOCIOCULTURALES;TEXTIL, CONFECCIÓN Y PIEL;TRANSPORTE Y MANTENIMIENTO DE VEHÍCULOS", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Difícil acceso, los docentes son funcionarios públicos y la bolsa de empleo es muy restringida." },
+            { "nombre": "EUROINNOVA BUSINESS SCHOOL", "telefono": "958050200", "correo": "formacion@euroinnova.com", "direccion": "CAMINO LA TORRECILLA, 30 EDIFICIO EDUCA EDTECH, Atarfe, Granada", "especialidades": "ENFERMERÍA;FARMACIA;MEDICINA;FISIOTERAPIA;VETERINARIA;NUTRICIÓN;EDUCACIÓN;MARKETING", "contacto": "900 831 200 (Atención al cliente)", "entidad": "Privada", "zona": "Atarfe", "web": "https://www.euroinnova.edu.es" },
+            { "nombre": "Ayuntamiento de Armilla", "telefono": "958552897", "correo": "empleo@armilla.es", "direccion": "Centro de Formación Armilla. Avda. Poniente, s/n, 18100 Armilla (Granada)", "especialidades": "Formación para el empleo;Habilitación docente;Cursos de nuevas tecnologías", "contacto": "Isabel López", "entidad": "Pública", "zona": "Armilla", "observaciones": "Publicación de ofertas en la web municipal y tablón de anuncios.", "web": "https://www.armilla.es/empleo", "autor": "Morelia" },
+            { "nombre": "ACADEMIA FORMACIÓN SUR", "telefono": "958 123 456", "correo": "info@formacionsur.com", "direccion": "Calle San Juan de Dios, 23, 18001 Granada", "especialidades": "Certificados de profesionalidad;Cursos de idiomas;Habilidades digitales", "contacto": "Miguel Hernández", "entidad": "Privada", "zona": "Granada", "observaciones": "Centro acreditado por la Junta de Andalucía. Inscripción online en la web.", "web": "https://www.formacionsur.com", "autor": "Morelia" },
+            { "nombre": "ESCUELA DE FPO LA BLANCA PALOMA", "telefono": "958590002", "correo": "directora@doceteomnes.com", "direccion": "Calle Padre Villoslada, 2 18140 La Zubia (Granada)", "especialidades": "ADMINISTRACION Y GESTION;COMERCIO Y MARKETING;HOSTELERÍA Y TURISMO;IMAGEN PERSONAL;SERVICIOS SOCIOCULTURALES Y A LA COMUNIDAD", "contacto": "directora@doceteomnes.com", "entidad": "Privada Concertada", "zona": "La Zubia", "observaciones": "Buenas opiniones por su variada oferta de ciclos de FP.", "autor": "René" },
+            { "nombre": "ACADEMIA EL FUTURO GRANADA", "telefono": "958153827", "correo": "academiafuturo@gmail.com", "direccion": "Avda. Juan Pablo ll, 64 B, Bajo, 18001", "especialidades": "Docencia FPE;CERTIFICADOS DE PROFESIONALIDAD;FORMACIÓN PROFESIONAL DUAL", "contacto": "Maira", "entidad": "Pública", "zona": "Granada", "observaciones": "Colabora en programas de formación y prácticas en empresa para jóvenes y desempleados.", "autor": "Eman" },
+            { "nombre": "Albay Formación", "telefono": "+34 689 39 54 86", "correo": "cursos@albay.es", "direccion": "C/ Santa Rita, 4 – 18004 (Granada)", "especialidades": "Servicios socioculturales y a la comunidad;Informática y Comunicaciones;Administración y gestión;Servicios Financieros;Comercio y Marketing", "contacto": "", "entidad": "Privada", "zona": "Granada", "observaciones": "Ofrece un abanico potente de posibilidades, pero hay que solicitar información previa ya que no facilitan datos." },
+            { "nombre": "Formas Granada", "telefono": "+34 695 22 79 90", "correo": "info@formasgranada.com", "direccion": "Camino de Ronda, 189, 18003, Granada", "especialidades": "Administración;Hostelería;Turismo;Industria alimentaria;Sanitario;Tecnología;FP Oficial", "contacto": "No especificado", "entidad": "Privada", "zona": "Granada", "observaciones": "Ofrece gran variedad de cursos y grados. Parece una franquicia." },
+            { "nombre": "Academia Gijón", "telefono": "958 820 048", "correo": "info@academiagijon.es", "direccion": "C/ San Cristóbal, 3 – Bajo – 18600 Motril (Granada)", "especialidades": "Idiomas;Infantil;Formación todas las etapas educativas", "contacto": "Antonia Gijón Terrones", "entidad": "Privada", "zona": "Motril", "autor": "María" },
+            { "nombre": "Galilea Formación", "telefono": "958 250925", "correo": "info@galileaformacion.com", "direccion": "C/ Manuel de Falla, 3 – Bajo – 18005 Granada", "especialidades": "Idiomas;Formación bonificada;Certificados de profesionalidad;FP;Oposiciones", "contacto": "María José Padial Cogolludo", "entidad": "Privada", "zona": "Granada", "observaciones": "Centro homologado por la Junta de Andalucía.", "autor": "María" },
+            { "nombre": "Escuela pública Centro albayzín", "telefono": "958 17 26 77", "correo": "crnartesania.sae@juntadeandalucia.es", "direccion": "Placeta de la Concepción 1 , Granada", "especialidades": "Artesanía tradicional;Restauración;Fabricación de instrumentos musicales;Vidrio y cerámica;Afinación de pianos;Emprendimiento en Artesanía", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Centro de Referencia Nacional de Artesanía." },
+            { "nombre": "Centro de estudios Valverde Motril", "telefono": "958824081", "correo": "No disponible", "direccion": "Avda. Enrique Martín Cuevas, Nº 14, 18600", "especialidades": "Oposiciones;Idiomas;Infantil;Servicio a empresas;Salvamento y seguridad marítima", "contacto": "www.centrosvalverde.es", "entidad": "Privada", "zona": "Motril", "autor": "Dori" },
+            { "nombre": "Atlántida Formación Profesional", "telefono": "900 287 287", "correo": "info@atlantidacidep.es", "direccion": "C/ Acequia del Zute, 2 - 18015, Granada", "especialidades": "Formación para empresas;FP reglada;Certificados profesionales;Atención sociosanitaria;Análisis químico;Jardinería;Microinformática;Control de plagas;Tanatopraxia", "contacto": "No indicado", "entidad": "Privada", "zona": "Granada", "web": "https://atlantidaformacion.com/", "autor": "César" },
+            { "nombre": "Campus Elea", "telefono": "958 419005", "correo": "info@campuselea.es", "direccion": "C/ Periodista Fernando de la Cruz nº61, Oficina 7, CETIC-UGR, 18014 Granada", "especialidades": "Cursos Bonificados;Marketing Digital;Competencias digitales;Prevención de Riesgos Laborales;Hostelería (HORECA)", "contacto": "Marta Núñez", "entidad": "Privada", "zona": "Granada", "web": "https://campuselea.es/contacto/", "autor": "Marcos" }
+        ];
+
+        let companies = [];
+        const loader = document.getElementById('loader');
+
+        document.getElementById('edit-sheet-btn').href = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/edit`;
+        
+        // --- DOM Elements ---
+        const contentContainer = document.getElementById('wiki-content');
+        const searchInput = document.getElementById('searchInput');
+        const noResults = document.getElementById('no-results');
+        const zoneFilter = document.getElementById('zoneFilter');
+        const entityFilterContainer = document.getElementById('entityFilter');
+        const viewSwitcher = document.getElementById('view-switcher');
+        const gridView = document.getElementById('grid-view');
+        const mapView = document.getElementById('map-view');
+
+        // --- Map Initialization ---
+        let map;
+        let markers = L.layerGroup();
+        
+        // --- FUNCTION DEFINITIONS ---
+
+        const initMap = () => {
+            map = L.map('map').setView([37.1773, -3.5986], 12); // Centered on Granada
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+            markers.addTo(map);
+        };
+        
+        const updateMapMarkers = (filteredCompanies) => {
+            markers.clearLayers();
+            filteredCompanies.forEach(company => {
+                if (company.lat && company.lng) {
+                    const marker = L.marker([parseFloat(company.lat), parseFloat(company.lng)]);
+                    marker.bindPopup(`<b>${company.nombre}</b><br>${company.direccion}`);
+                    markers.addLayer(marker);
+                }
+            });
+        };
+
+        const showConfigError = (error) => {
+            console.error('Error fetching data from Google Sheets:', error);
+            const spinner = document.getElementById('spinner');
+            const loaderText = document.getElementById('loader-text');
+            spinner.style.display = 'none';
+            loaderText.innerHTML = `
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 max-w-2xl mx-auto text-left">
+                    <p class="font-bold">No se pudo conectar con Google Sheets.</p>
+                    <p class="text-sm mt-1">Mostrando datos iniciales. Los cambios en la hoja de cálculo no se reflejarán.</p>
+                </div>`;
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 2000);
+        }
+
+        const parseCSV = (text) => {
+            const lines = text.split(/\r\n|\n/);
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i]) continue;
+                const obj = {};
+                const currentline = lines[i].match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+                for (let j = 0; j < headers.length; j++) {
+                    let value = (currentline[j] || '').trim();
+                    if (value.startsWith('"') && value.endsWith('"')) {
+                        value = value.substring(1, value.length - 1);
+                    }
+                    obj[headers[j]] = value;
+                }
+                data.push(obj);
+            }
+            return data;
+        }
+
+        const createCompanyCard = (company) => {
+            const specialtiesHTML = (company.especialidades || []).map(spec => `<span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${spec}</span>`).join('');
+            const isPublic = company.entidad && (company.entidad.toLowerCase().includes('pública') || company.entidad.toLowerCase().includes('público'));
+
+            return `
+                <div class="card bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                    <div class="p-5 flex-grow">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full ${isPublic ? 'text-green-600 bg-green-200' : 'text-purple-600 bg-purple-200'}">${company.entidad || ''}</span>
+                            <span class="text-xs text-gray-400">por ${company.autor || 'Anónimo'}</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">${company.nombre || 'Sin nombre'}</h3>
+                        <p class="text-sm font-medium text-gray-500 mb-3">${company.zona || ''}</p>
+                        <div class="space-y-3 text-sm text-gray-600">
+                            ${company.direccion ? `<p><strong>📍 Dirección:</strong> ${company.direccion}</p>` : ''}
+                            ${company.telefono ? `<p><strong>📞 Teléfono:</strong> ${company.telefono}</p>` : ''}
+                            ${company.correo ? `<p><strong>✉️ Correo:</strong> <a href="mailto:${company.correo}" class="text-blue-500 hover:underline">${company.correo}</a></p>` : ''}
+                            ${company.contacto ? `<p><strong>👤 Contacto:</strong> ${company.contacto}</p>` : ''}
+                        </div>
+                        <div class="mt-4"><h4 class="font-semibold text-sm mb-2">Especialidades:</h4><div class="flex flex-wrap">${specialtiesHTML}</div></div>
+                        ${company.observaciones ? `<div class="mt-4 pt-4 border-t border-gray-200"><p class="text-sm text-gray-500"><strong class="text-gray-700">Observaciones:</strong> ${company.observaciones}</p></div>` : ''}
+                    </div>
+                    ${company.web ? `<div class="bg-gray-50 p-3 border-t"><a href="${company.web}" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-blue-600 hover:text-blue-800 w-full text-center block">Visitar web →</a></div>` : ''}
+                </div>`;
+        };
+
+        const renderCompanies = () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedZone = zoneFilter.value;
+            const selectedEntity = entityFilterContainer.querySelector('.filter-btn-active').dataset.filter;
+
+            const filteredCompanies = companies.filter(company => {
+                const searchMatch = [company.nombre, company.contacto, company.autor, ...(company.especialidades || [])].join(' ').toLowerCase().includes(searchTerm);
+                const zoneMatch = selectedZone === 'all' || company.zona === selectedZone;
+                const entityMatch = selectedEntity === 'all' || (company.entidad && (selectedEntity === 'public' && (company.entidad.toLowerCase().includes('pública') || company.entidad.toLowerCase().includes('público'))) || (selectedEntity === 'private' && !(company.entidad.toLowerCase().includes('pública') || company.entidad.toLowerCase().includes('público'))));
+                return searchMatch && zoneMatch && entityMatch;
+            });
+
+            contentContainer.innerHTML = '';
+            if (filteredCompanies.length > 0) {
+                filteredCompanies.forEach(company => contentContainer.innerHTML += createCompanyCard(company));
+                noResults.classList.add('hidden');
+                contentContainer.classList.remove('hidden');
+            } else {
+                noResults.classList.remove('hidden');
+                contentContainer.classList.add('hidden');
+            }
+            updateMapMarkers(filteredCompanies);
+        };
+
+        const populateZoneFilter = () => {
+            const zones = [...new Set(companies.map(c => c.zona).filter(Boolean))].sort();
+            zoneFilter.innerHTML = `<option value="all">Todas las zonas</option>`;
+            zones.forEach(zone => {
+                zoneFilter.innerHTML += `<option value="${zone}">${zone}</option>`;
+            });
+        };
+        
+        const initializeData = (data) => {
+            companies = data.map(company => {
+                if (company.especialidades && typeof company.especialidades === 'string') {
+                    company.especialidades = company.especialidades.split(';').map(s => s.trim()).filter(Boolean);
+                } else {
+                    company.especialidades = [];
+                }
+                return company;
+            });
+            initMap();
+            populateZoneFilter();
+            renderCompanies();
+        }
+
+        // --- MAIN LOGIC ---
+        // 1. Render initial data immediately
+        initializeData(initialCompanies);
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 500);
+        
+        // 2. Try to fetch fresh data from Google Sheets
+        if (PUBLISHED_CSV_URL !== 'PEGA_AQUÍ_TU_ENLACE_CSV') {
+            fetch(PUBLISHED_CSV_URL)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(text => {
+                    const freshData = parseCSV(text);
+                    if(freshData.length > 0) {
+                        console.log("Datos de Google Sheets cargados correctamente.");
+                        initializeData(freshData); // Re-render with fresh data
+                    }
+                })
+                .catch(error => {
+                    showConfigError(error);
+                    // Keep initial data loaded, just show an error message.
+                    initializeData(initialCompanies);
+                });
+        }
+
+
+        // --- EVENT LISTENERS ---
+        searchInput.addEventListener('keyup', renderCompanies);
+        zoneFilter.addEventListener('change', renderCompanies);
+        entityFilterContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                entityFilterContainer.querySelector('.filter-btn-active').classList.remove('filter-btn-active');
+                e.target.classList.add('filter-btn-active');
+                renderCompanies();
+            }
+        });
+
+        viewSwitcher.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (!button) return;
+            const view = button.dataset.view;
+            
+            viewSwitcher.querySelector('.active').classList.remove('active');
+            button.classList.add('active');
+
+            if (view === 'grid') {
+                gridView.classList.remove('hidden');
+                mapView.classList.add('hidden');
+            } else {
+                gridView.classList.add('hidden');
+                mapView.classList.remove('hidden');
+                setTimeout(() => map.invalidateSize(), 1);
+            }
+        });
+    </script>
+</body>
+</html>
+
