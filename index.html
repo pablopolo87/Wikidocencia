@@ -83,21 +83,21 @@
         
         // --- DATOS INICIALES PRE-CARGADOS DEL DOCUMENTO WORD ---
         let initialCompanies = [
-            { "nombre": "AYUNTAMIENTO DE MONACHIL", "telefono": "673366009", "correo": "TECNICOEMPLEO@MONACHIL.ES", "direccion": "CENTRO DE FORMACIÓN LAS CANTERAS. POLIGONO LAS CANTERAS. C/ LEÑADORES", "especialidades": "HABILITACIÓN DOCENCIA;ATENCION SOCIOSANITARIA", "contacto": "ROCIO", "entidad": "Pública", "zona": "Monachil", "observaciones": "Publicación de oferta en el tablón de anuncio del ayuntamiento.", "web": "https://monachil.sedelectronica.es/info.0" },
-            { "nombre": "Centro Público de FPE Cartuja", "telefono": "600158359", "correo": "cartuja.dpgr.ceec@juntadeandalucia.es", "direccion": "C/ José A. Mesa García, 2 (Esquina Periodista Luis de Vicente) 18011 Granada", "especialidades": "ADMINISTRACIÓN Y GESTIÓN;ELECTRICIDAD Y ELECTRÓNICA;ENERGÍA Y AGUA;EDIFICACIÓN Y OBRA CIVIL;FABRICACIÓN MECÁNICA;HOSTELERÍA Y TURISMO;INFORMÁTICA Y COMUNICACIONES;INSTALACIÓN Y MANTENIMIENTO;MADERA, MUEBLE Y CORCHO;QUÍMICA;SEGURIDAD Y MEDIOAMBIENTE;SERVICIOS SOCIOCULTURALES;TEXTIL, CONFECCIÓN Y PIEL;TRANSPORTE Y MANTENIMIENTO DE VEHÍCULOS", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Difícil acceso, los docentes son funcionarios públicos y la bolsa de empleo es muy restringida." },
-            { "nombre": "EUROINNOVA BUSINESS SCHOOL", "telefono": "958050200", "correo": "formacion@euroinnova.com", "direccion": "CAMINO LA TORRECILLA, 30 EDIFICIO EDUCA EDTECH, Atarfe, Granada", "especialidades": "ENFERMERÍA;FARMACIA;MEDICINA;FISIOTERAPIA;VETERINARIA;NUTRICIÓN;EDUCACIÓN;MARKETING", "contacto": "900 831 200 (Atención al cliente)", "entidad": "Privada", "zona": "Atarfe", "web": "https://www.euroinnova.edu.es" },
-            { "nombre": "Ayuntamiento de Armilla", "telefono": "958552897", "correo": "empleo@armilla.es", "direccion": "Centro de Formación Armilla. Avda. Poniente, s/n, 18100 Armilla (Granada)", "especialidades": "Formación para el empleo;Habilitación docente;Cursos de nuevas tecnologías", "contacto": "Isabel López", "entidad": "Pública", "zona": "Armilla", "observaciones": "Publicación de ofertas en la web municipal y tablón de anuncios.", "web": "https://www.armilla.es/empleo", "autor": "Morelia" },
-            { "nombre": "ACADEMIA FORMACIÓN SUR", "telefono": "958 123 456", "correo": "info@formacionsur.com", "direccion": "Calle San Juan de Dios, 23, 18001 Granada", "especialidades": "Certificados de profesionalidad;Cursos de idiomas;Habilidades digitales", "contacto": "Miguel Hernández", "entidad": "Privada", "zona": "Granada", "observaciones": "Centro acreditado por la Junta de Andalucía. Inscripción online en la web.", "web": "https://www.formacionsur.com", "autor": "Morelia" },
-            { "nombre": "ESCUELA DE FPO LA BLANCA PALOMA", "telefono": "958590002", "correo": "directora@doceteomnes.com", "direccion": "Calle Padre Villoslada, 2 18140 La Zubia (Granada)", "especialidades": "ADMINISTRACION Y GESTION;COMERCIO Y MARKETING;HOSTELERÍA Y TURISMO;IMAGEN PERSONAL;SERVICIOS SOCIOCULTURALES Y A LA COMUNIDAD", "contacto": "directora@doceteomnes.com", "entidad": "Privada Concertada", "zona": "La Zubia", "observaciones": "Buenas opiniones por su variada oferta de ciclos de FP.", "autor": "René" },
-            { "nombre": "ACADEMIA EL FUTURO GRANADA", "telefono": "958153827", "correo": "academiafuturo@gmail.com", "direccion": "Avda. Juan Pablo ll, 64 B, Bajo, 18001", "especialidades": "Docencia FPE;CERTIFICADOS DE PROFESIONALIDAD;FORMACIÓN PROFESIONAL DUAL", "contacto": "Maira", "entidad": "Pública", "zona": "Granada", "observaciones": "Colabora en programas de formación y prácticas en empresa para jóvenes y desempleados.", "autor": "Eman" },
-            { "nombre": "Albay Formación", "telefono": "+34 689 39 54 86", "correo": "cursos@albay.es", "direccion": "C/ Santa Rita, 4 – 18004 (Granada)", "especialidades": "Servicios socioculturales y a la comunidad;Informática y Comunicaciones;Administración y gestión;Servicios Financieros;Comercio y Marketing", "contacto": "", "entidad": "Privada", "zona": "Granada", "observaciones": "Ofrece un abanico potente de posibilidades, pero hay que solicitar información previa ya que no facilitan datos." },
-            { "nombre": "Formas Granada", "telefono": "+34 695 22 79 90", "correo": "info@formasgranada.com", "direccion": "Camino de Ronda, 189, 18003, Granada", "especialidades": "Administración;Hostelería;Turismo;Industria alimentaria;Sanitario;Tecnología;FP Oficial", "contacto": "No especificado", "entidad": "Privada", "zona": "Granada", "observaciones": "Ofrece gran variedad de cursos y grados. Parece una franquicia." },
-            { "nombre": "Academia Gijón", "telefono": "958 820 048", "correo": "info@academiagijon.es", "direccion": "C/ San Cristóbal, 3 – Bajo – 18600 Motril (Granada)", "especialidades": "Idiomas;Infantil;Formación todas las etapas educativas", "contacto": "Antonia Gijón Terrones", "entidad": "Privada", "zona": "Motril", "autor": "María" },
-            { "nombre": "Galilea Formación", "telefono": "958 250925", "correo": "info@galileaformacion.com", "direccion": "C/ Manuel de Falla, 3 – Bajo – 18005 Granada", "especialidades": "Idiomas;Formación bonificada;Certificados de profesionalidad;FP;Oposiciones", "contacto": "María José Padial Cogolludo", "entidad": "Privada", "zona": "Granada", "observaciones": "Centro homologado por la Junta de Andalucía.", "autor": "María" },
-            { "nombre": "Escuela pública Centro albayzín", "telefono": "958 17 26 77", "correo": "crnartesania.sae@juntadeandalucia.es", "direccion": "Placeta de la Concepción 1 , Granada", "especialidades": "Artesanía tradicional;Restauración;Fabricación de instrumentos musicales;Vidrio y cerámica;Afinación de pianos;Emprendimiento en Artesanía", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Centro de Referencia Nacional de Artesanía." },
-            { "nombre": "Centro de estudios Valverde Motril", "telefono": "958824081", "correo": "No disponible", "direccion": "Avda. Enrique Martín Cuevas, Nº 14, 18600", "especialidades": "Oposiciones;Idiomas;Infantil;Servicio a empresas;Salvamento y seguridad marítima", "contacto": "www.centrosvalverde.es", "entidad": "Privada", "zona": "Motril", "autor": "Dori" },
-            { "nombre": "Atlántida Formación Profesional", "telefono": "900 287 287", "correo": "info@atlantidacidep.es", "direccion": "C/ Acequia del Zute, 2 - 18015, Granada", "especialidades": "Formación para empresas;FP reglada;Certificados profesionales;Atención sociosanitaria;Análisis químico;Jardinería;Microinformática;Control de plagas;Tanatopraxia", "contacto": "No indicado", "entidad": "Privada", "zona": "Granada", "web": "https://atlantidaformacion.com/", "autor": "César" },
-            { "nombre": "Campus Elea", "telefono": "958 419005", "correo": "info@campuselea.es", "direccion": "C/ Periodista Fernando de la Cruz nº61, Oficina 7, CETIC-UGR, 18014 Granada", "especialidades": "Cursos Bonificados;Marketing Digital;Competencias digitales;Prevención de Riesgos Laborales;Hostelería (HORECA)", "contacto": "Marta Núñez", "entidad": "Privada", "zona": "Granada", "web": "https://campuselea.es/contacto/", "autor": "Marcos" }
+            { "nombre": "AYUNTAMIENTO DE MONACHIL", "telefono": "673366009", "correo": "TECNICOEMPLEO@MONACHIL.ES", "direccion": "CENTRO DE FORMACIÓN LAS CANTERAS. POLIGONO LAS CANTERAS. C/ LEÑADORES", "especialidades": "HABILITACIÓN DOCENCIA;ATENCION SOCIOSANITARIA", "contacto": "ROCIO", "entidad": "Pública", "zona": "Monachil", "observaciones": "Publicación de oferta en el tablón de anuncio del ayuntamiento.", "web": "https://monachil.sedelectronica.es/info.0", "lat": 37.1384, "lng": -3.5516 },
+            { "nombre": "Centro Público de FPE Cartuja", "telefono": "600158359", "correo": "cartuja.dpgr.ceec@juntadeandalucia.es", "direccion": "C/ José A. Mesa García, 2 (Esquina Periodista Luis de Vicente) 18011 Granada", "especialidades": "ADMINISTRACIÓN Y GESTIÓN;ELECTRICIDAD Y ELECTRÓNICA;ENERGÍA Y AGUA;EDIFICACIÓN Y OBRA CIVIL;FABRICACIÓN MECÁNICA;HOSTELERÍA Y TURISMO;INFORMÁTICA Y COMUNICACIONES;INSTALACIÓN Y MANTENIMIENTO;MADERA, MUEBLE Y CORCHO;QUÍMICA;SEGURIDAD Y MEDIOAMBIENTE;SERVICIOS SOCIOCULTURALES;TEXTIL, CONFECCIÓN Y PIEL;TRANSPORTE Y MANTENIMIENTO DE VEHÍCULOS", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Difícil acceso, los docentes son funcionarios públicos y la bolsa de empleo es muy restringida.", "lat": 37.1986, "lng": -3.6095 },
+            { "nombre": "EUROINNOVA BUSINESS SCHOOL", "telefono": "958050200", "correo": "formacion@euroinnova.com", "direccion": "CAMINO LA TORRECILLA, 30 EDIFICIO EDUCA EDTECH, Atarfe, Granada", "especialidades": "ENFERMERÍA;FARMACIA;MEDICINA;FISIOTERAPIA;VETERINARIA;NUTRICIÓN;EDUCACIÓN;MARKETING", "contacto": "900 831 200 (Atención al cliente)", "entidad": "Privada", "zona": "Atarfe", "web": "https://www.euroinnova.edu.es", "lat": 37.2185, "lng": -3.6877 },
+            { "nombre": "Ayuntamiento de Armilla", "telefono": "958552897", "correo": "empleo@armilla.es", "direccion": "Centro de Formación Armilla. Avda. Poniente, s/n, 18100 Armilla (Granada)", "especialidades": "Formación para el empleo;Habilitación docente;Cursos de nuevas tecnologías", "contacto": "Isabel López", "entidad": "Pública", "zona": "Armilla", "observaciones": "Publicación de ofertas en la web municipal y tablón de anuncios.", "web": "https://www.armilla.es/empleo", "autor": "Morelia", "lat": 37.1423, "lng": -3.6268 },
+            { "nombre": "ACADEMIA FORMACIÓN SUR", "telefono": "958 123 456", "correo": "info@formacionsur.com", "direccion": "Calle San Juan de Dios, 23, 18001 Granada", "especialidades": "Certificados de profesionalidad;Cursos de idiomas;Habilidades digitales", "contacto": "Miguel Hernández", "entidad": "Privada", "zona": "Granada", "observaciones": "Centro acreditado por la Junta de Andalucía. Inscripción online en la web.", "web": "https://www.formacionsur.com", "autor": "Morelia", "lat": 37.1798, "lng": -3.6026 },
+            { "nombre": "ESCUELA DE FPO LA BLANCA PALOMA", "telefono": "958590002", "correo": "directora@doceteomnes.com", "direccion": "Calle Padre Villoslada, 2 18140 La Zubia (Granada)", "especialidades": "ADMINISTRACION Y GESTION;COMERCIO Y MARKETING;HOSTELERÍA Y TURISMO;IMAGEN PERSONAL;SERVICIOS SOCIOCULTURALES Y A LA COMUNIDAD", "contacto": "directora@doceteomnes.com", "entidad": "Privada Concertada", "zona": "La Zubia", "observaciones": "Buenas opiniones por su variada oferta de ciclos de FP.", "autor": "René", "lat": 37.1215, "lng": -3.5858 },
+            { "nombre": "ACADEMIA EL FUTURO GRANADA", "telefono": "958153827", "correo": "academiafuturo@gmail.com", "direccion": "Avda. Juan Pablo ll, 64 B, Bajo, 18014 Granada", "especialidades": "Docencia FPE;CERTIFICADOS DE PROFESIONALIDAD;FORMACIÓN PROFESIONAL DUAL", "contacto": "Maira", "entidad": "Pública", "zona": "Granada", "observaciones": "Colabora en programas de formación y prácticas en empresa para jóvenes y desempleados.", "autor": "Eman", "lat": 37.1952, "lng": -3.6174 },
+            { "nombre": "Albay Formación", "telefono": "+34 689 39 54 86", "correo": "cursos@albay.es", "direccion": "C/ Santa Rita, 4 – 18004 (Granada)", "especialidades": "Servicios socioculturales y a la comunidad;Informática y Comunicaciones;Administración y gestión;Servicios Financieros;Comercio y Marketing", "contacto": "", "entidad": "Privada", "zona": "Granada", "observaciones": "Ofrece un abanico potente de posibilidades, pero hay que solicitar información previa ya que no facilitan datos.", "lat": 37.1685, "lng": -3.6012 },
+            { "nombre": "Formas Granada", "telefono": "+34 695 22 79 90", "correo": "info@formasgranada.com", "direccion": "Camino de Ronda, 189, 18003, Granada", "especialidades": "Administración;Hostelería;Turismo;Industria alimentaria;Sanitario;Tecnología;FP Oficial", "contacto": "No especificado", "entidad": "Privada", "zona": "Granada", "observaciones": "Ofrece gran variedad de cursos y grados. Parece una franquicia.", "lat": 37.1670, "lng": -3.6055 },
+            { "nombre": "Academia Gijón", "telefono": "958 820 048", "correo": "info@academiagijon.es", "direccion": "C/ San Cristóbal, 3 – Bajo – 18600 Motril (Granada)", "especialidades": "Idiomas;Infantil;Formación todas las etapas educativas", "contacto": "Antonia Gijón Terrones", "entidad": "Privada", "zona": "Motril", "autor": "María", "lat": 36.7458, "lng": -3.5195 },
+            { "nombre": "Galilea Formación", "telefono": "958 250925", "correo": "info@galileaformacion.com", "direccion": "C/ Manuel de Falla, 3 – Bajo – 18005 Granada", "especialidades": "Idiomas;Formación bonificada;Certificados de profesionalidad;FP;Oposiciones", "contacto": "María José Padial Cogolludo", "entidad": "Privada", "zona": "Granada", "observaciones": "Centro homologado por la Junta de Andalucía.", "autor": "María", "lat": 37.1713, "lng": -3.5995 },
+            { "nombre": "Escuela pública Centro albayzín", "telefono": "958 17 26 77", "correo": "crnartesania.sae@juntadeandalucia.es", "direccion": "Placeta de la Concepción 1 , Granada", "especialidades": "Artesanía tradicional;Restauración;Fabricación de instrumentos musicales;Vidrio y cerámica;Afinación de pianos;Emprendimiento en Artesanía", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Centro de Referencia Nacional de Artesanía.", "lat": 37.1824, "lng": -3.5936 },
+            { "nombre": "Centro de estudios Valverde Motril", "telefono": "958824081", "correo": "No disponible", "direccion": "Avda. Enrique Martín Cuevas, Nº 14, 18600 Motril", "especialidades": "Oposiciones;Idiomas;Infantil;Servicio a empresas;Salvamento y seguridad marítima", "contacto": "www.centrosvalverde.es", "entidad": "Privada", "zona": "Motril", "autor": "Dori", "lat": 36.7480, "lng": -3.5165 },
+            { "nombre": "Atlántida Formación Profesional", "telefono": "900 287 287", "correo": "info@atlantidacidep.es", "direccion": "C/ Acequia del Zute, 2 - 18015, Granada", "especialidades": "Formación para empresas;FP reglada;Certificados profesionales;Atención sociosanitaria;Análisis químico;Jardinería;Microinformática;Control de plagas;Tanatopraxia", "contacto": "No indicado", "entidad": "Privada", "zona": "Granada", "web": "https://atlantidaformacion.com/", "autor": "César", "lat": 37.2111, "lng": -3.6191 },
+            { "nombre": "Campus Elea", "telefono": "958 419005", "correo": "info@campuselea.es", "direccion": "C/ Periodista Fernando de la Cruz nº61, Oficina 7, CETIC-UGR, 18014 Granada", "especialidades": "Cursos Bonificados;Marketing Digital;Competencias digitales;Prevención de Riesgos Laborales;Hostelería (HORECA)", "contacto": "Marta Núñez", "entidad": "Privada", "zona": "Granada", "web": "https://campuselea.es/contacto/", "autor": "Marcos", "lat": 37.1995, "lng": -3.6225 }
         ];
 
         let companies = [];
@@ -122,9 +122,11 @@
         // --- FUNCTION DEFINITIONS ---
 
         const initMap = () => {
-            map = L.map('map').setView([37.1773, -3.5986], 12); // Centered on Granada
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
-            markers.addTo(map);
+            if(!map) { // Prevent re-initializing the map
+                map = L.map('map').setView([37.1773, -3.5986], 12); // Centered on Granada
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
+                markers.addTo(map);
+            }
         };
         
         const updateMapMarkers = (filteredCompanies) => {
@@ -236,45 +238,18 @@
             companies = data.map(company => {
                 if (company.especialidades && typeof company.especialidades === 'string') {
                     company.especialidades = company.especialidades.split(';').map(s => s.trim()).filter(Boolean);
-                } else {
+                } else if (!Array.isArray(company.especialidades)) {
                     company.especialidades = [];
                 }
                 return company;
             });
-            initMap();
             populateZoneFilter();
             renderCompanies();
         }
 
         // --- MAIN LOGIC ---
-        // 1. Render initial data immediately
-        initializeData(initialCompanies);
-        loader.style.opacity = '0';
-        setTimeout(() => loader.style.display = 'none', 500);
         
-        // 2. Try to fetch fresh data from Google Sheets
-        if (PUBLISHED_CSV_URL !== 'PEGA_AQUÍ_TU_ENLACE_CSV') {
-            fetch(PUBLISHED_CSV_URL)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.text();
-                })
-                .then(text => {
-                    const freshData = parseCSV(text);
-                    if(freshData.length > 0) {
-                        console.log("Datos de Google Sheets cargados correctamente.");
-                        initializeData(freshData); // Re-render with fresh data
-                    }
-                })
-                .catch(error => {
-                    showConfigError(error);
-                    // Keep initial data loaded, just show an error message.
-                    initializeData(initialCompanies);
-                });
-        }
-
-
-        // --- EVENT LISTENERS ---
+        // Setup Event Listeners
         searchInput.addEventListener('keyup', renderCompanies);
         zoneFilter.addEventListener('change', renderCompanies);
         entityFilterContainer.addEventListener('click', (e) => {
@@ -302,7 +277,33 @@
                 setTimeout(() => map.invalidateSize(), 1);
             }
         });
-    </script>
-</body>
-</html>
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            // 1. Render initial data immediately
+            initializeData(initialCompanies);
+            loader.style.opacity = '0';
+            setTimeout(() => loader.style.display = 'none', 500);
+            
+            // 2. Try to fetch fresh data from Google Sheets
+            if (PUBLISHED_CSV_URL && PUBLISHED_CSV_URL !== 'PEGA_AQUÍ_TU_ENLACE_CSV') {
+                fetch(PUBLISHED_CSV_URL)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        return response.text();
+                    })
+                    .then(text => {
+                        const freshData = parseCSV(text);
+                        if(freshData.length > 0) {
+                            console.log("Datos de Google Sheets cargados correctamente.");
+                            initializeData(freshData); // Re-render with fresh data
+                        }
+                    })
+                    .catch(error => {
+                        showConfigError(error);
+                        // Keep initial data loaded, just show an error message.
+                    });
+            }
+        });
 
