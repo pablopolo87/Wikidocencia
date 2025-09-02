@@ -9,8 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- LeafletJS for Map -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
@@ -18,9 +18,14 @@
         #map { height: 60vh; min-height: 500px; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .filter-btn-active { background-color: #2563eb; color: white; }
         .view-tab.active { color: #2563eb; border-color: #2563eb; }
+        #error-banner.hidden { display: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
+
+    <div id="error-banner" class="hidden sticky top-0 z-50 bg-red-100 border-b-2 border-red-500 text-red-800 p-4 text-center text-sm">
+        <p><strong>¡Atención!</strong> No se pudieron cargar los datos actualizados de Google Sheets. Revisa que la hoja de cálculo esté compartida con "Cualquier persona con el enlace". Se están mostrando los últimos datos guardados.</p>
+    </div>
 
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <header class="text-center mb-8">
@@ -30,8 +35,8 @@
 
         <div class="max-w-4xl mx-auto bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-center mb-8">
             <h2 class="font-bold">¡Hola! ¿Quieres colaborar?</h2>
-            <p class="text-sm mt-1">Añade empresas directamente en la hoja de Google compartida. La web se actualizará automáticamente.</p>
-            <a href="https://docs.google.com/spreadsheets/d/1Gq-OAmeytBrPj98VNTpMtQS-q6fQOSmr4kDn1YxnzPk/edit?usp=sharing" target="_blank" class="mt-2 inline-block bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm hover:bg-blue-700">Abrir hoja en Google Sheets</a>
+            <p class="text-sm mt-1">Para añadir o corregir información, por favor, edita directamente este archivo en nuestro repositorio de GitHub. ¡Gracias por tu ayuda!</p>
+            <a href="https://github.com/pablopolo87/Wikidocencia/edit/main/index.html" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm hover:bg-blue-700">Editar en GitHub</a>
         </div>
 
         <div class="sticky top-4 bg-gray-50/90 backdrop-blur-sm z-10 py-4 mb-6 rounded-lg">
@@ -71,8 +76,39 @@
     </div>
 
     <script>
+        // --- CONFIGURACIÓN DE GOOGLE SHEETS ---
+        const GOOGLE_SHEET_ID = '1Gq-OAmeytBrPj98VNTpMtQS-q6fQOSmr4kDn1YxnzPk';
+        const SHEET_NAME = 'Hoja 1'; 
+        const DATA_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+        // --- BASE DE DATOS LOCAL (COMO RESPALDO) ---
+        const companiesData = [
+            { "nombre": "AYUNTAMIENTO DE MONACHIL", "telefono": "673366009", "correo": "TECNICOEMPLEO@MONACHIL.ES", "direccion": "CENTRO DE FORMACIÓN LAS CANTERAS. POLIGONO LAS CANTERAS. C/ LEÑADORES", "especialidades": "HABILITACIÓN DOCENCIA;ATENCION SOCIOSANITARIA", "contacto": "ROCIO", "entidad": "Pública", "zona": "Monachil", "observaciones": "Publicación de oferta en el tablón de anuncio del ayuntamiento.", "web": "https://monachil.sedelectronica.es/info.0", "autor": "", "lat": 37.1384, "lng": -3.5516 },
+            { "nombre": "Centro Público de FPE Cartuja", "telefono": "600158359", "correo": "cartuja.dpgr.ceec@juntadeandalucia.es", "direccion": "C/ José A. Mesa García, 2 (Esquina Periodista Luis de Vicente) 18011 Granada", "especialidades": "ADMINISTRACIÓN Y GESTIÓN;ELECTRICIDAD Y ELECTRÓNICA;ENERGÍA Y AGUA;EDIFICACIÓN Y OBRA CIVIL;FABRICACIÓN MECÁNICA;HOSTELERÍA Y TURISMO;INFORMÁTICA Y COMUNICACIONES;INSTALACIÓN Y MANTENIMIENTO;MADERA, MUEBLE Y CORCHO;QUÍMICA;SEGURIDAD Y MEDIOAMBIENTE;SERVICIOS SOCIOCULTURALES;TEXTIL, CONFECCIÓN Y PIEL;TRANSPORTE Y MANTENIMIENTO DE VEHÍCULOS", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Difícil acceso, los docentes son funcionarios públicos y la bolsa de empleo es muy restringida.", "web": "", "autor": "", "lat": 37.1986, "lng": -3.6095 },
+            { "nombre": "EUROINNOVA BUSINESS SCHOOL", "telefono": "958050200", "correo": "formacion@euroinnova.com", "direccion": "CAMINO LA TORRECILLA, 30 EDIFICIO EDUCA EDTECH, Atarfe, Granada", "especialidades": "ENFERMERÍA;FARMACIA;MEDICINA;FISIOTERAPIA;VETERINARIA;NUTRICIÓN;EDUCACIÓN;MARKETING", "contacto": "900 831 200 (Atención al cliente)", "entidad": "Privada", "zona": "Atarfe", "observaciones": "", "web": "https://www.euroinnova.edu.es", "autor": "", "lat": 37.2185, "lng": -3.6877 },
+            { "nombre": "Ayuntamiento de Armilla", "telefono": "958552897", "correo": "empleo@armilla.es", "direccion": "Centro de Formación Armilla. Avda. Poniente, s/n, 18100 Armilla (Granada)", "especialidades": "Formación para el empleo;Habilitación docente;Cursos de nuevas tecnologías", "contacto": "Isabel López", "entidad": "Pública", "zona": "Armilla", "observaciones": "Publicación de ofertas en la web municipal y tablón de anuncios.", "web": "https://www.armilla.es/empleo", "autor": "Morelia", "lat": 37.1423, "lng": -3.6268 },
+            { "nombre": "ACADEMIA FORMACIÓN SUR", "telefono": "958 123 456", "correo": "info@formacionsur.com", "direccion": "Calle San Juan de Dios, 23, 18001 Granada", "especialidades": "Certificados de profesionalidad;Cursos de idiomas;Habilidades digitales", "contacto": "Miguel Hernández", "entidad": "Privada", "zona": "Granada", "observaciones": "Centro acreditado por la Junta de Andalucía. Inscripción online en la web.", "web": "https://www.formacionsur.com", "autor": "Morelia", "lat": 37.1798, "lng": -3.6026 },
+            { "nombre": "ESCUELA DE FPO LA BLANCA PALOMA", "telefono": "958590002", "correo": "directora@doceteomnes.com", "direccion": "Calle Padre Villoslada, 2 18140 La Zubia (Granada)", "especialidades": "ADMINISTRACION Y GESTION;COMERCIO Y MARKETING;HOSTELERÍA Y TURISMO;IMAGEN PERSONAL;SERVICIOS SOCIOCULTURALES Y A LA COMUNIDAD", "contacto": "directora@doceteomnes.com", "entidad": "Privada Concertada", "zona": "La Zubia", "observaciones": "Buenas opiniones por su variada oferta de ciclos de FP.", "web": "", "autor": "René", "lat": 37.1215, "lng": -3.5858 },
+            { "nombre": "ACADEMIA EL FUTURO GRANADA", "telefono": "958153827", "correo": "academiafuturo@gmail.com", "direccion": "Avda. Juan Pablo ll, 64 B, Bajo, 18014 Granada", "especialidades": "Docencia FPE;CERTIFICADOS DE PROFESIONALIDAD;FORMACIÓN PROFESIONAL DUAL", "contacto": "Maira", "entidad": "Privada", "zona": "Granada", "observaciones": "Colabora en programas de formación y prácticas en empresa para jóvenes y desempleados.", "web": "", "autor": "Eman", "lat": 37.1952, "lng": -3.6174 },
+            { "nombre": "Albay Formación", "telefono": "+34 689 39 54 86", "correo": "cursos@albay.es", "direccion": "C/ Santa Rita, 4 – 18004 (Granada)", "especialidades": "Servicios socioculturales y a la comunidad;Informática y Comunicaciones;Administración y gestión;Servicios Financieros;Comercio y Marketing", "contacto": "", "entidad": "Privada", "zona": "Granada", "observaciones": "Ofrece un abanico potente de posibilidades, pero hay que solicitar información previa ya que no facilitan datos.", "web": "", "autor": "", "lat": 37.1685, "lng": -3.6012 },
+            { "nombre": "Formas Granada", "telefono": "+34 695 22 79 90", "correo": "info@formasgranada.com", "direccion": "Camino de Ronda, 189, 18003, Granada", "especialidades": "Administración;Hostelería;Turismo;Industria alimentaria;Sanitario;Tecnología;FP Oficial", "contacto": "No especificado", "entidad": "Privada", "zona": "Granada", "observaciones": "Ofrece gran variedad de cursos y grados. Parece una franquicia.", "web": "", "autor": "", "lat": 37.167, "lng": -3.6055 },
+            { "nombre": "Academia Gijón", "telefono": "958 820 048", "correo": "info@academiagijon.es", "direccion": "C/ San Cristóbal, 3 – Bajo – 18600 Motril (Granada)", "especialidades": "Idiomas;Infantil;Formación todas las etapas educativas", "contacto": "Antonia Gijón Terrones", "entidad": "Privada", "zona": "Motril", "observaciones": "", "web": "", "autor": "María", "lat": 36.7458, "lng": -3.5195 },
+            { "nombre": "Galilea Formación", "telefono": "958 250925", "correo": "info@galileaformacion.com", "direccion": "C/ Manuel de Falla, 3 – Bajo – 18005 Granada", "especialidades": "Idiomas;Formación bonificada;Certificados de profesionalidad;FP;Oposiciones", "contacto": "María José Padial Cogolludo", "entidad": "Privada", "zona": "Granada", "observaciones": "Centro homologado por la Junta de Andalucía.", "web": "", "autor": "María", "lat": 37.1713, "lng": -3.5995 },
+            { "nombre": "Escuela pública Centro albayzín", "telefono": "958 17 26 77", "correo": "crnartesania.sae@juntadeandalucia.es", "direccion": "Placeta de la Concepción 1 , Granada", "especialidades": "Artesanía tradicional;Restauración;Fabricación de instrumentos musicales;Vidrio y cerámica;Afinación de pianos;Emprendimiento en Artesanía", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Centro de Referencia Nacional de Artesanía.", "web": "", "autor": "", "lat": 37.1824, "lng": -3.5936 },
+            { "nombre": "Centro de estudios Valverde Motril", "telefono": "958824081", "correo": "No disponible", "direccion": "Avda. Enrique Martín Cuevas, Nº 14, 18600 Motril", "especialidades": "Oposiciones;Idiomas;Infantil;Servicio a empresas;Salvamento y seguridad marítima", "contacto": "www.centrosvalverde.es", "entidad": "Privada", "zona": "Motril", "observaciones": "", "web": "", "autor": "Dori", "lat": 36.748, "lng": -3.5165 },
+            { "nombre": "Atlántida Formación Profesional", "telefono": "900 287 287", "correo": "info@atlantidacidep.es", "direccion": "C/ Acequia del Zute, 2 - 18015, Granada", "especialidades": "Formación para empresas;FP reglada;Certificados profesionales;Atención sociosanitaria;Análisis químico;Jardinería;Microinformática;Control de plagas;Tanatopraxia", "contacto": "No indicado", "entidad": "Privada", "zona": "Granada", "observaciones": "", "web": "https://atlantidaformacion.com/", "autor": "César", "lat": 37.2111, "lng": -3.6191 },
+            { "nombre": "Campus Elea", "telefono": "958 419005", "correo": "info@campuselea.es", "direccion": "C/ Periodista Fernando de la Cruz nº61, Oficina 7, CETIC-UGR, 18014 Granada", "especialidades": "Cursos Bonificados;Marketing Digital;Competencias digitales;Prevención de Riesgos Laborales;Hostelería (HORECA)", "contacto": "Marta Núñez", "entidad": "Privada", "zona": "Granada", "observaciones": "", "web": "https://campuselea.es/contacto/", "autor": "Marcos", "lat": 37.1995, "lng": -3.6225 },
+            { "nombre": "SIDFE — Servicios Integrales de Docencia", "telefono": "958 550 150", "correo": "info@sidfe.es", "direccion": "C/ Jueves, 38 - 2º J, 18100 Armilla (Granada)", "especialidades": "Certificados de profesionalidad;Hostelería;Atención sociosanitaria;Informática y ofimática;Recursos Humanos;Formación para pilotos de dron", "contacto": "Ver web y redes sociales", "entidad": "Privada", "zona": "Armilla", "observaciones": "Centro autorizado para impartir formación para el empleo y certificados de profesionalidad.", "web": "https://www.sidfe.es", "autor": "", "lat": 37.1465, "lng": -3.6245 },
+            { "nombre": "O.A.L Albolote", "telefono": "958467393", "correo": "info@oal-albolote.com", "direccion": "Avenida Jacobo Camarero, s/n, 18220 Albolote, Granada", "especialidades": "Administración y servicio;Servicios sociales y comunitarios;Competencias digitales;Formación Cruz Roja", "contacto": "manuel.moles@cruzroja.es", "entidad": "Pública", "zona": "Albolote", "observaciones": "Organismo Autónomo Local. Colabora con Cruz Roja y Diputación de Granada.", "web": "", "autor": "N/A", "lat": 37.228, "lng": -3.655 },
+            { "nombre": "Academia Teba", "telefono": "+34 958 943 902", "correo": "info@academiateba.es", "direccion": "Avda. Fernando de los Ríos, 34, 18006 Granada", "especialidades": "Preparación de oposiciones;Formación para el empleo;Idiomas;Español para extranjeros", "contacto": "", "entidad": "Privada", "zona": "Granada", "observaciones": "Más de 30 años de experiencia. Centro acreditado por el Instituto Cervantes.", "web": "", "autor": "Morelia", "lat": 37.162, "lng": -3.606 },
+            { "nombre": "Escuela de Formación Profesional (Grupo EFP)", "telefono": "958 089 725", "correo": "granada@grupoefp.es", "direccion": "C/ Benjamín Franklin, 1, 18100 Armilla, Granada", "especialidades": "Artes Gráficas;Administración y Gestión;Habilitante;Transversal;Servicio a empresas", "contacto": "Antonia Gijón Terrones", "entidad": "Privada", "zona": "Armilla", "observaciones": "Empresa privada, homologada por el SEPE.", "web": "https://www.escueladeformacionprofesional.com", "autor": "María", "lat": 37.147, "lng": -3.622 },
+            { "nombre": "Consorcio de la Vega Sierra Elvira", "telefono": "No disponible", "correo": "info@consvega.com", "direccion": "Calle Doctor Jiménez Rueda, 1, 18230 Atarfe (Granada)", "especialidades": "Actividades de gestión administrativa;Competencias clave;Gestión de llamadas de teleasistencia;Atención sociosanitaria;Docencia de la FPE", "contacto": "info@consvega.com", "entidad": "Pública", "zona": "Atarfe", "observaciones": "Entidad local y pública.", "web": "https://consvega.com/consorcio/", "autor": "César", "lat": 37.217, "lng": -3.684 },
+            { "nombre": "Aspasia", "telefono": "958 805100", "correo": "comunicacion@grupoaspasia.com", "direccion": "C/ Cisne nº 6. 18014. Granada", "especialidades": "Certificados de Profesionalidad;Gestión contable;Recursos humanos;Atención al cliente;Cocina;Páginas web;Atención sociosanitaria", "contacto": "", "entidad": "Privada", "zona": "Granada", "observaciones": "Cubre todos los sectores con cursos y certificados.", "web": "https://grupoaspasia.com/es", "autor": "PEPA", "lat": 37.194, "lng": -3.615 }
+        ];
+
         let companies = [];
         
+        // --- DOM Elements ---
         const contentContainer = document.getElementById('wiki-content');
         const searchInput = document.getElementById('searchInput');
         const noResults = document.getElementById('no-results');
@@ -81,13 +117,17 @@
         const viewSwitcher = document.getElementById('view-switcher');
         const gridView = document.getElementById('grid-view');
         const mapView = document.getElementById('map-view');
+        const errorBanner = document.getElementById('error-banner');
 
+        // --- Map Initialization ---
         let map;
         let markers = L.layerGroup();
         
+        // --- FUNCTION DEFINITIONS ---
+
         const initMap = () => {
-            if(!map) {
-                map = L.map('map').setView([37.1773, -3.5986], 12);
+            if(!map) { // Prevent re-initializing the map
+                map = L.map('map').setView([37.1773, -3.5986], 12); // Centered on Granada
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
                 markers.addTo(map);
             }
@@ -103,6 +143,22 @@
                 }
             });
         };
+
+        const parseCSV = (text) => {
+            const lines = text.split(/\r\n|\n/);
+            const headers = lines[0].replace(/"/g, '').split(',').map(h => h.trim().toLowerCase());
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i]) continue;
+                const obj = {};
+                const currentline = lines[i].slice(1, -1).split('","');
+                for (let j = 0; j < headers.length; j++) {
+                     obj[headers[j]] = (currentline[j] || '').replace(/\\"/g, '"');
+                }
+                data.push(obj);
+            }
+            return data;
+        }
 
         const createCompanyCard = (company) => {
             const specialtiesHTML = (company.especialidades || []).map(spec => `<span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${spec}</span>`).join('');
@@ -138,11 +194,7 @@
             const filteredCompanies = companies.filter(company => {
                 const searchMatch = [company.nombre, company.contacto, company.autor, ...(company.especialidades || [])].join(' ').toLowerCase().includes(searchTerm);
                 const zoneMatch = selectedZone === 'all' || company.zona === selectedZone;
-                const entityMatch = selectedEntity === 'all' || 
-                    (company.entidad && (
-                        (selectedEntity === 'public' && (company.entidad.toLowerCase().includes('pública') || company.entidad.toLowerCase().includes('público'))) ||
-                        (selectedEntity === 'private' && !(company.entidad.toLowerCase().includes('pública') || company.entidad.toLowerCase().includes('público')))
-                    ));
+                const entityMatch = selectedEntity === 'all' || (company.entidad && (selectedEntity === 'public' && (company.entidad.toLowerCase().includes('pública') || company.entidad.toLowerCase().includes('público'))) || (selectedEntity === 'private' && !(company.entidad.toLowerCase().includes('pública') || company.entidad.toLowerCase().includes('público'))));
                 return searchMatch && zoneMatch && entityMatch;
             });
 
@@ -179,6 +231,9 @@
             renderCompanies();
         };
 
+        // --- MAIN LOGIC ---
+        
+        // Setup Event Listeners
         searchInput.addEventListener('keyup', renderCompanies);
         zoneFilter.addEventListener('change', renderCompanies);
         entityFilterContainer.addEventListener('click', (e) => {
@@ -207,33 +262,33 @@
             }
         });
 
+        // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
             initMap();
-            const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSQKt6sWjZz-yQ6CPIvKW0BoQw3fxdzPEOuVa1RiTCTow-PjVTrf7N0duofyOXkBCkCRk9dYnirPHyx/pub?gid=0&single=true&output=csv";
-
-            fetch(sheetCsvUrl)
-              .then(res => res.text())
-              .then(csv => {
-                const rows = csv.trim().split("\n").map(line => line.split(","));
-                const headers = rows[0].map(h => h.trim().toLowerCase());
-
-                const data = rows.slice(1).map(r => {
-                  let obj = {};
-                  headers.forEach((h, i) => {
-                    obj[h] = r[i] ? r[i].trim() : "";
-                  });
-                  obj.especialidades = obj.especialidades
-                    ? obj.especialidades.split(";").map(s => s.trim()).filter(Boolean)
-                    : [];
-                  obj.lat = parseFloat(obj.lat) || null;
-                  obj.lng = parseFloat(obj.lng) || null;
-                  return obj;
+            // 1. Render backup data immediately
+            initializeData(companiesData);
+            
+            // 2. Try to fetch fresh data from Google Sheets
+            fetch(DATA_URL)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    const freshData = parseCSV(text);
+                    if (freshData.length > 0) {
+                        console.log("Datos de Google Sheets cargados correctamente.");
+                        initializeData(freshData); // Re-render with fresh data
+                    }
+                })
+                .catch(error => {
+                    console.error("No se pudo cargar desde Google Sheets:", error);
+                    errorBanner.classList.remove('hidden');
                 });
-
-                initializeData(data);
-              })
-              .catch(err => console.error("Error cargando la hoja (CSV):", err));
         });
+
     </script>
 </body>
 </html>
