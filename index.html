@@ -18,15 +18,9 @@
         #map { height: 60vh; min-height: 500px; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .filter-btn-active { background-color: #2563eb; color: white; }
         .view-tab.active { color: #2563eb; border-color: #2563eb; }
-        #loader { transition: opacity 0.5s ease-out; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
-    <!-- Loader / Error Message -->
-    <div id="loader" class="fixed inset-0 bg-white z-50 flex flex-col items-center justify-center text-center p-4">
-        <div id="spinner" class="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-        <p id="loader-text" class="mt-4 text-gray-600">Cargando datos...</p>
-    </div>
 
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         <header class="text-center mb-8">
@@ -34,15 +28,17 @@
             <p class="text-lg text-gray-600 mt-2">Directorio de empresas para la Formación Profesional para el Empleo en Granada.</p>
         </header>
 
+        <div class="max-w-4xl mx-auto bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-center mb-8">
+            <h2 class="font-bold">¡Hola! ¿Quieres colaborar?</h2>
+            <p class="text-sm mt-1">Para añadir o corregir información, por favor, edita directamente el archivo en nuestro repositorio de GitHub. ¡Gracias por tu ayuda!</p>
+            <a href="https://github.com/pablopolo87/Wikidocencia/edit/main/index.html" target="_blank" rel="noopener noreferrer" class="mt-2 inline-block bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-sm hover:bg-blue-700">Editar en GitHub</a>
+        </div>
+
         <div class="sticky top-4 bg-gray-50/90 backdrop-blur-sm z-10 py-4 mb-6 rounded-lg">
             <div class="max-w-4xl mx-auto space-y-4">
-                 <div class="flex flex-col sm:flex-row gap-4">
-                    <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre, especialidad, contacto..." class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
-                     <a id="add-entry-btn" href="#" target="_blank" class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 transition whitespace-nowrap text-center flex items-center justify-center">
-                        ➕ Añadir Empresa
-                    </a>
+                 <div class="flex">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar por nombre, especialidad, contacto..." class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500">
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="zoneFilter" class="block text-sm font-medium text-gray-700 mb-1">Filtrar por Zona:</label>
@@ -51,9 +47,9 @@
                      <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Filtrar por Entidad:</label>
                         <div id="entityFilter" class="flex items-center bg-gray-200 rounded-lg p-1">
-                            <button data-filter="all" class="filter-btn-active flex-1 text-center py-1 px-3 rounded-md text-sm font-semibold transition">Todas</button>
-                            <button data-filter="public" class="flex-1 text-center py-1 px-3 rounded-md text-sm font-semibold transition">Públicas</button>
-                            <button data-filter="private" class="flex-1 text-center py-1 px-3 rounded-md text-sm font-semibold transition">Privadas</button>
+                            <button data-filter="all" class="filter-btn-active flex-1 text-center py-1 px-3 rounded-md text-sm font-semibold">Todas</button>
+                            <button data-filter="public" class="flex-1 text-center py-1 px-3 rounded-md text-sm font-semibold">Públicas</button>
+                            <button data-filter="private" class="flex-1 text-center py-1 px-3 rounded-md text-sm font-semibold">Privadas</button>
                         </div>
                     </div>
                 </div>
@@ -75,17 +71,10 @@
     </div>
 
     <script>
-        // --- 1. CONFIGURACIÓN ---
-        const GOOGLE_SHEET_ID = '1Gq-OAmeytBrPj98VNTpMtQS-q6fQOSmr4kDn1YxnzPk';
-        const SHEET_NAME = 'Hoja 1'; // Asegúrate de que este es el nombre exacto de tu hoja
-        const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSe-P_gS8pY-5d7c-3Xqf3tNn-1yW1s-0oM8oR_d9f-3lKz-0w/viewform?usp=sf_link'; // Enlace para el botón "Añadir Empresa"
-        
-        const DATA_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-        
-        // --- NO TOCAR A PARTIR DE AQUÍ ---
-        
-        // --- DATOS INICIALES PRE-CARGADOS ---
-        let initialCompanies = [
+        // --- BASE DE DATOS LOCAL ---
+        // Para añadir una nueva empresa, copia una de las líneas, pégala al final y modifica los datos.
+        // Asegúrate de que cada línea (excepto la última) termine con una coma.
+        const companiesData = [
             { "nombre": "AYUNTAMIENTO DE MONACHIL", "telefono": "673366009", "correo": "TECNICOEMPLEO@MONACHIL.ES", "direccion": "CENTRO DE FORMACIÓN LAS CANTERAS. POLIGONO LAS CANTERAS. C/ LEÑADORES", "especialidades": "HABILITACIÓN DOCENCIA;ATENCION SOCIOSANITARIA", "contacto": "ROCIO", "entidad": "Pública", "zona": "Monachil", "observaciones": "Publicación de oferta en el tablón de anuncio del ayuntamiento.", "web": "https://monachil.sedelectronica.es/info.0", "lat": 37.1384, "lng": -3.5516 },
             { "nombre": "Centro Público de FPE Cartuja", "telefono": "600158359", "correo": "cartuja.dpgr.ceec@juntadeandalucia.es", "direccion": "C/ José A. Mesa García, 2 (Esquina Periodista Luis de Vicente) 18011 Granada", "especialidades": "ADMINISTRACIÓN Y GESTIÓN;ELECTRICIDAD Y ELECTRÓNICA;ENERGÍA Y AGUA;EDIFICACIÓN Y OBRA CIVIL;FABRICACIÓN MECÁNICA;HOSTELERÍA Y TURISMO;INFORMÁTICA Y COMUNICACIONES;INSTALACIÓN Y MANTENIMIENTO;MADERA, MUEBLE Y CORCHO;QUÍMICA;SEGURIDAD Y MEDIOAMBIENTE;SERVICIOS SOCIOCULTURALES;TEXTIL, CONFECCIÓN Y PIEL;TRANSPORTE Y MANTENIMIENTO DE VEHÍCULOS", "contacto": "", "entidad": "Pública", "zona": "Granada", "observaciones": "Difícil acceso, los docentes son funcionarios públicos y la bolsa de empleo es muy restringida.", "lat": 37.1986, "lng": -3.6095 },
             { "nombre": "EUROINNOVA BUSINESS SCHOOL", "telefono": "958050200", "correo": "formacion@euroinnova.com", "direccion": "CAMINO LA TORRECILLA, 30 EDIFICIO EDUCA EDTECH, Atarfe, Granada", "especialidades": "ENFERMERÍA;FARMACIA;MEDICINA;FISIOTERAPIA;VETERINARIA;NUTRICIÓN;EDUCACIÓN;MARKETING", "contacto": "900 831 200 (Atención al cliente)", "entidad": "Privada", "zona": "Atarfe", "web": "https://www.euroinnova.edu.es", "lat": 37.2185, "lng": -3.6877 },
@@ -105,8 +94,7 @@
         ];
 
         let companies = [];
-        const loader = document.getElementById('loader');
-
+        
         // --- DOM Elements ---
         const contentContainer = document.getElementById('wiki-content');
         const searchInput = document.getElementById('searchInput');
@@ -141,53 +129,6 @@
                 }
             });
         };
-
-        const showConfigError = (error) => {
-            console.error('Error fetching data from Google Sheets:', error);
-            const spinner = document.getElementById('spinner');
-            const loaderText = document.getElementById('loader-text');
-            spinner.style.display = 'none';
-            loaderText.innerHTML = `
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 max-w-2xl mx-auto text-left rounded-r-lg">
-                    <p class="font-bold">¡Error de Conexión!</p>
-                    <p class="text-sm mt-2">No se pudieron cargar los datos de Google Sheets. La causa más común es que la hoja no se ha compartido correctamente.</p>
-                    <p class="text-sm mt-2"><strong>Solución Rápida:</strong></p>
-                    <ol class="list-decimal list-inside text-sm mt-1 space-y-1">
-                        <li>Abre tu Google Sheet.</li>
-                        <li>Haz clic en <strong>"Compartir"</strong> (botón azul, arriba a la derecha).</li>
-                        <li>En "Acceso general", selecciona <strong>"Cualquier persona con el enlace"</strong>.</li>
-                        <li>Asegúrate de que el rol sea al menos <strong>"Lector"</strong> para que la web pueda ver los datos.</li>
-                    </ol>
-                    <p class="text-sm mt-3 font-semibold">Mientras tanto, se mostrarán los datos iniciales pre-cargados.</p>
-                </div>`;
-            // Keep the message on screen a bit longer for the user to read it.
-            setTimeout(() => {
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
-            }, 8000);
-        }
-
-        const parseCSV = (text) => {
-            if (!text || typeof text !== 'string') {
-                throw new Error("Invalid input to parseCSV: not a string or empty.");
-            }
-            const lines = text.split(/\r\n|\n/);
-            if (lines.length < 1) {
-                throw new Error("Invalid CSV format: no lines found.");
-            }
-            const headers = lines[0].replace(/"/g, '').split(',').map(h => h.trim());
-            const data = [];
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i]) continue;
-                const obj = {};
-                const currentline = lines[i].slice(1, -1).split('","');
-                for (let j = 0; j < headers.length; j++) {
-                     obj[headers[j]] = (currentline[j] || '').replace(/\\"/g, '"');
-                }
-                data.push(obj);
-            }
-            return data;
-        }
 
         const createCompanyCard = (company) => {
             const specialtiesHTML = (company.especialidades || []).map(spec => `<span class="inline-block bg-blue-100 text-blue-800 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${spec}</span>`).join('');
@@ -259,24 +200,6 @@
             populateZoneFilter();
             renderCompanies();
         };
-        
-        const fetchWithTimeout = (resource, options = {}) => {
-            const { timeout = 10000 } = options;
-            
-            const controller = new AbortController();
-            const id = setTimeout(() => controller.abort(), timeout);
-
-            const response = fetch(resource, {
-                ...options,
-                signal: controller.signal  
-            });
-            
-            response.finally(() => {
-                clearTimeout(id);
-            });
-
-            return response;
-        };
 
         // --- MAIN LOGIC ---
         
@@ -311,49 +234,13 @@
 
         // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
-            if (GOOGLE_FORM_URL && GOOGLE_FORM_URL !== 'PEGA_AQUÍ_EL_ENLACE_DE_TU_FORMULARIO_DE_GOOGLE') {
-                document.getElementById('add-entry-btn').href = GOOGLE_FORM_URL;
-            }
             initMap();
-            // 1. Render initial data immediately
-            initializeData(initialCompanies);
-            
-            // 2. Try to fetch fresh data from Google Sheets
-            if (DATA_URL && DATA_URL.startsWith('https')) {
-                fetchWithTimeout(DATA_URL, { timeout: 10000 })
-                    .then(response => {
-                        if (!response.ok) throw new Error(`Network response was not ok (${response.status})`);
-                        return response.text();
-                    })
-                    .then(text => {
-                        try {
-                            const freshData = parseCSV(text);
-                            if(freshData.length > 0) {
-                                console.log("Datos de Google Sheets cargados correctamente.");
-                                initializeData(freshData); // Re-render with fresh data
-                            }
-                        } catch (parseError) {
-                             console.error("Fallo al procesar los datos de Google Sheets:", parseError);
-                             console.error("Datos recibidos:", text);
-                             throw new Error("Formato de datos de Google Sheets no válido.");
-                        }
-                        // Hide loader after successful fetch
-                        loader.style.opacity = '0';
-                        setTimeout(() => loader.style.display = 'none', 500);
-                    })
-                    .catch(error => {
-                        showConfigError(error);
-                        // In case of error, initial data is already shown. The error message will appear inside the loader div.
-                    });
-            } else {
-                 // Hide loader if no URL is provided
-                loader.style.opacity = '0';
-                setTimeout(() => loader.style.display = 'none', 500);
-            }
+            initializeData(companiesData);
         });
 
     </script>
 </body>
 </html>
+
 
 
